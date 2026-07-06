@@ -1,0 +1,360 @@
+import { createClient } from "@sanity/client";
+import { toHTML } from "@portabletext/to-html";
+import type { CmsAdapter } from "./types";
+import { sanitizeRichText } from "./sanitize";
+import { normalizeImage } from "./image-utils";
+import { parseFieldMap, mapField } from "./field-map";
+
+/* ---------- client setup ---------- */
+
+const client = createClient({
+  projectId: process.env.SANITY_PROJECT_ID!,
+  dataset: process.env.SANITY_DATASET ?? "production",
+  token: process.env.SANITY_TOKEN,
+  apiVersion: "2024-01-01",
+  useCdn: !process.env.SANITY_TOKEN,
+});
+
+const fieldMap = parseFieldMap(process.env.SANITY_FIELD_MAP);
+const articleType = process.env.SANITY_ARTICLE_TYPE ?? "article";
+
+/* ---------- GROQ fragments ---------- */
+
+const ARTICLE_PROJECTION = `{
+  _id,
+  headline,
+  slug,
+  teaser,
+  body,
+  _createdAt,
+  _updatedAt,
+  image { asset-> { url, metadata { dimensions } }, alt },
+  category-> { _id, name, slug },
+  author-> { _id, name, slug, avatar { asset-> { url } } },
+  tags,
+  readingTimeMinutes,
+  isPremium,
+  paywall,
+  isLive,
+  isOpinion,
+  isFeatured,
+  isBreaking,
+  aiSummary,
+  region
+}`;
+
+/* ---------- helpers ---------- */
+
+function resolveSlug(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (value && typeof value === "object") {
+    return String((value as Record<string, unknown>).current ?? "");
+  }
+  return "";
+}
+
+/** Safely run a GROQ query; return fallback on error. */
+async function safeQuery<T>(
+  groq: string,
+  params: Record<string, unknown>,
+  fallback: T,
+): Promise<T> {
+  try {
+    return await client.fetch<T>(groq, params);
+  } catch {
+    return fallback;
+  }
+}
+
+/* ---------- record mapper ---------- */
+
+function mapRecord(record: Record<string, unknown>): unknown {
+  const fm = fieldMap;
+
+  const rawBody = record[mapField(fm, "body")];
+  const bodyHtml = rawBody
+    ? sanitizeRichText(toHTML(rawBody as Parameters<typeof toHTML>[0]))
+    : "";
+
+  const img = record[mapField(fm, "image")] as Record<string, unknown> | null;
+  const asset = img?.asset as Record<string, unknown> | null;
+  const dims = (asset?.metadata as Record<string, unknown>)?.dimensions as
+    | Record<string, unknown>
+    | null;
+
+  const cat = record[mapField(fm, "category")] as Record<string, unknown> | null;
+  const auth = record[mapField(fm, "author")] as Record<string, unknown> | null;
+  const authAvatar = auth
+    ? (auth.avatar as Record<string, unknown> | null)
+    : null;
+  const authAvatarAsset = authAvatar
+    ? (authAvatar.asset as Record<string, unknown> | null)
+    : null;
+
+  return {
+    id: String(record._id ?? ""),
+    headline: String(record[mapField(fm, "headline")] ?? ""),
+    slug: resolveSlug(record[mapField(fm, "slug")]),
+    teaser: String(record[mapField(fm, "teaser")] ?? ""),
+    body: bodyHtml,
+    publicationDate: String(record._createdAt ?? ""),
+    updatedAt: String(record._updatedAt ?? ""),
+    image: normalizeImage(
+      asset ? String(asset.url ?? "") : null,
+      img ? String(img.alt ?? "") : undefined,
+      dims ? Number(dims.width ?? 0) : undefined,
+      dims ? Number(dims.height ?? 0) : undefined,
+    ),
+    category: cat
+      ? {
+          id: String(cat._id ?? ""),
+          name: String(cat.name ?? ""),
+          slug: resolveSlug(cat.slug),
+        }
+      : { id: "", name: "", slug: "" },
+    author: auth
+      ? {
+          id: String(auth._id ?? ""),
+          name: String(auth.name ?? ""),
+          slug: resolveSlug(auth.slug),
+          avatar: authAvatarAsset ? String(authAvatarAsset.url ?? "") : "",
+        }
+      : { id: "", name: "", slug: "", avatar: "" },
+    tags: Array.isArray(record[mapField(fm, "tags")])
+      ? record[mapField(fm, "tags")]
+      : [],
+    readingTimeMinutes: Number(record[mapField(fm, "readingTimeMinutes")] ?? 0),
+    commentCount: 0,
+    isPremium: record[mapField(fm, "isPremium")] === true,
+    paywall: String(record[mapField(fm, "paywall")] ?? "free"),
+    isLive: record[mapField(fm, "isLive")] === true,
+    isOpinion: record[mapField(fm, "isOpinion")] === true,
+    isFeatured: record[mapField(fm, "isFeatured")] === true,
+    isBreaking: record[mapField(fm, "isBreaking")] === true,
+    aiSummary: String(record[mapField(fm, "aiSummary")] ?? ""),
+    region: String(record[mapField(fm, "region")] ?? ""),
+    comments: [],
+  };
+}
+
+function mapCategory(record: Record<string, unknown>): unknown {
+  return {
+    id: String(record._id ?? ""),
+    name: String(record.name ?? ""),
+    slug: resolveSlug(record.slug),
+    description: String(record.description ?? ""),
+    color: String(record.color ?? ""),
+  };
+}
+
+function mapAuthor(record: Record<string, unknown>): unknown {
+  const avatar = record.avatar as Record<string, unknown> | null;
+  const avatarAsset = avatar
+    ? (avatar.asset as Record<string, unknown> | null)
+    : null;
+
+  return {
+    id: String(record._id ?? ""),
+    name: String(record.name ?? ""),
+    slug: resolveSlug(record.slug),
+    bio: String(record.bio ?? ""),
+    avatar: avatarAsset ? String(avatarAsset.url ?? "") : "",
+    role: String(record.role ?? ""),
+  };
+}
+
+/* ---------- adapter ---------- */
+
+const sanityAdapter: CmsAdapter = {
+  name: "sanity",
+
+  async fetchAllArticles(): Promise<unknown[]> {
+    const results = await safeQuery<Record<string, unknown>[]>(
+      `*[_type == $type] | order(_createdAt desc) ${ARTICLE_PROJECTION}`,
+      { type: articleType },
+      [],
+    );
+    return results.map(mapRecord);
+  },
+
+  async fetchArticleBySlug(slug: string): Promise<unknown | null> {
+    const result = await safeQuery<Record<string, unknown> | null>(
+      `*[_type == $type && slug.current == $slug][0] ${ARTICLE_PROJECTION}`,
+      { type: articleType, slug },
+      null,
+    );
+    return result ? mapRecord(result) : null;
+  },
+
+  async fetchArticlesByCategory(categorySlug: string): Promise<unknown[]> {
+    const results = await safeQuery<Record<string, unknown>[]>(
+      `*[_type == $type && category->slug.current == $slug] | order(_createdAt desc) ${ARTICLE_PROJECTION}`,
+      { type: articleType, slug: categorySlug },
+      [],
+    );
+    return results.map(mapRecord);
+  },
+
+  async searchArticlesByQuery(query: string): Promise<unknown[]> {
+    const results = await safeQuery<Record<string, unknown>[]>(
+      `*[_type == $type && [headline, teaser] match $query] | order(_createdAt desc) ${ARTICLE_PROJECTION}`,
+      { type: articleType, query: `${query}*` },
+      [],
+    );
+    return results.map(mapRecord);
+  },
+
+  async fetchArticleSlugs(): Promise<unknown[]> {
+    const results = await safeQuery<Record<string, unknown>[]>(
+      `*[_type == $type] { "slug": slug.current, "updatedAt": _updatedAt }`,
+      { type: articleType },
+      [],
+    );
+    return results.map((r) => ({
+      slug: String(r.slug ?? ""),
+      updatedAt: String(r.updatedAt ?? ""),
+    }));
+  },
+
+  async fetchAllCategories(): Promise<unknown[]> {
+    const results = await safeQuery<Record<string, unknown>[]>(
+      `*[_type == "category"] | order(name asc) { _id, name, slug, description, color }`,
+      {},
+      [],
+    );
+    return results.map(mapCategory);
+  },
+
+  async fetchCategoryBySlug(slug: string): Promise<unknown | null> {
+    const result = await safeQuery<Record<string, unknown> | null>(
+      `*[_type == "category" && slug.current == $slug][0] { _id, name, slug, description, color }`,
+      { slug },
+      null,
+    );
+    return result ? mapCategory(result) : null;
+  },
+
+  async fetchAllAuthors(): Promise<unknown[]> {
+    const results = await safeQuery<Record<string, unknown>[]>(
+      `*[_type == "author"] | order(name asc) { _id, name, slug, bio, role, avatar { asset-> { url } } }`,
+      {},
+      [],
+    );
+    return results.map(mapAuthor);
+  },
+
+  async fetchAuthorBySlug(slug: string): Promise<unknown | null> {
+    const result = await safeQuery<Record<string, unknown> | null>(
+      `*[_type == "author" && slug.current == $slug][0] { _id, name, slug, bio, role, avatar { asset-> { url } } }`,
+      { slug },
+      null,
+    );
+    return result ? mapAuthor(result) : null;
+  },
+
+  async fetchArticlesByAuthor(authorSlug: string): Promise<unknown[]> {
+    const results = await safeQuery<Record<string, unknown>[]>(
+      `*[_type == $type && author->slug.current == $slug] | order(_createdAt desc) ${ARTICLE_PROJECTION}`,
+      { type: articleType, slug: authorSlug },
+      [],
+    );
+    return results.map(mapRecord);
+  },
+
+  async fetchNewsticker(): Promise<unknown[]> {
+    const results = await safeQuery<Record<string, unknown>[]>(
+      `*[_type == "newsticker"] | order(_createdAt desc) [0...20] { _id, headline, text, _createdAt, url }`,
+      {},
+      [],
+    );
+    return results.map((r) => ({
+      id: String(r._id ?? ""),
+      headline: String(r.headline ?? ""),
+      text: String(r.text ?? ""),
+      timestamp: String(r._createdAt ?? ""),
+      url: String(r.url ?? ""),
+    }));
+  },
+
+  async fetchVideos(): Promise<unknown[]> {
+    const results = await safeQuery<Record<string, unknown>[]>(
+      `*[_type == "video"] | order(_createdAt desc) { _id, title, url, thumbnail, duration, _createdAt }`,
+      {},
+      [],
+    );
+    return results.map((r) => ({
+      id: String(r._id ?? ""),
+      title: String(r.title ?? ""),
+      url: String(r.url ?? ""),
+      thumbnail: String(r.thumbnail ?? ""),
+      duration: Number(r.duration ?? 0),
+      publishedAt: String(r._createdAt ?? ""),
+    }));
+  },
+
+  async fetchNavigation(): Promise<unknown> {
+    const result = await safeQuery<Record<string, unknown> | null>(
+      `*[_type == "navigation"][0]`,
+      {},
+      null,
+    );
+    if (!result) return { items: [] };
+    return {
+      items: Array.isArray(result.items) ? result.items : [],
+    };
+  },
+
+  async fetchSiteConfig(): Promise<unknown> {
+    const result = await safeQuery<Record<string, unknown> | null>(
+      `*[_type == "siteConfig"][0]`,
+      {},
+      null,
+    );
+    return result ?? {};
+  },
+
+  async fetchBreakingNews(): Promise<unknown[]> {
+    const results = await safeQuery<Record<string, unknown>[]>(
+      `*[_type == "breakingNews"] | order(_createdAt desc) [0...5] { _id, headline, text, url, severity, _createdAt }`,
+      {},
+      [],
+    );
+    return results.map((r) => ({
+      id: String(r._id ?? ""),
+      headline: String(r.headline ?? ""),
+      text: String(r.text ?? ""),
+      url: String(r.url ?? ""),
+      severity: String(r.severity ?? "normal"),
+      timestamp: String(r._createdAt ?? ""),
+    }));
+  },
+
+  async fetchQuiz(): Promise<unknown> {
+    const result = await safeQuery<Record<string, unknown> | null>(
+      `*[_type == "quiz"][0] { _id, title, questions }`,
+      {},
+      null,
+    );
+    if (!result) return null;
+    return {
+      id: String(result._id ?? ""),
+      title: String(result.title ?? ""),
+      questions: Array.isArray(result.questions) ? result.questions : [],
+    };
+  },
+
+  async fetchStockData(): Promise<unknown> {
+    const result = await safeQuery<Record<string, unknown> | null>(
+      `*[_type == "stockData"][0] { stocks, _updatedAt }`,
+      {},
+      null,
+    );
+    if (!result) return null;
+    return {
+      stocks: Array.isArray(result.stocks) ? result.stocks : [],
+      updatedAt: String(result._updatedAt ?? ""),
+    };
+  },
+};
+
+export default sanityAdapter;

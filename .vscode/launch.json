@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug in Browser",
+      "type": "editor-browser",
+      "request": "launch",
+      "url": "http://localhost:3000"
+    },
+    {
+      "name": "Attach to Browser",
+      "type": "editor-browser",
+      "request": "attach",
+      "urlFilter": "http://localhost:3000/*"
+    }
+  ]
+}
