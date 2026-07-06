@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import type { Article, NewstickerItem, Video } from "@/types";
+import type { Article, NewstickerItem, Video, Quiz, StockData } from "@/types";
 
 vi.mock("next/cache", () => ({
   cacheLife: vi.fn(),
@@ -12,6 +12,8 @@ vi.mock("@/lib/data", () => ({
   getArticles: vi.fn(),
   getNewstickerItems: vi.fn(),
   getVideos: vi.fn(),
+  getQuizData: vi.fn(),
+  getStockData: vi.fn(),
 }));
 
 const mockArticle: Article = {
@@ -80,6 +82,39 @@ const mockVideo: Video = {
   publishedAt: "2026-06-25T12:00:00Z",
 };
 
+const mockQuiz: Quiz = {
+  dailyQuiz: {
+    date: "2026-06-28",
+    title: "Tagesquiz",
+    questions: [
+      {
+        id: 1,
+        question: "Wie viele Bezirke hat Berlin?",
+        options: ["10", "12", "14", "16"],
+        correctIndex: 1,
+        explanation: "Berlin hat 12 Bezirke.",
+      },
+    ],
+  },
+  streakRewards: [],
+};
+
+const mockStockData: StockData = {
+  indices: [
+    {
+      id: "dax",
+      name: "DAX",
+      value: 21450.32,
+      change: 123.45,
+      changePercent: 0.58,
+      currency: "EUR",
+      sparkline: [21200, 21450],
+    },
+  ],
+  watchlist: [],
+  chartData: {},
+};
+
 describe("HomePage — metadata", () => {
   it("exportiert statische Metadaten mit Site-Name und Beschreibung", async () => {
     const { metadata } = await import("../page");
@@ -96,14 +131,21 @@ describe("HomePage — Server Component", () => {
   });
 
   it("löst ohne Fehler auf mit vollständigen Daten", async () => {
-    const { getArticles, getNewstickerItems, getVideos } =
-      await import("@/lib/data");
+    const {
+      getArticles,
+      getNewstickerItems,
+      getVideos,
+      getQuizData,
+      getStockData,
+    } = await import("@/lib/data");
     vi.mocked(getArticles).mockResolvedValue([
       mockFeaturedArticle,
       mockArticle,
     ]);
     vi.mocked(getNewstickerItems).mockResolvedValue([mockNewstickerItem]);
     vi.mocked(getVideos).mockResolvedValue([mockVideo]);
+    vi.mocked(getQuizData).mockResolvedValue(mockQuiz);
+    vi.mocked(getStockData).mockResolvedValue(mockStockData);
 
     const { default: HomePage } = await import("../page");
 
@@ -111,11 +153,18 @@ describe("HomePage — Server Component", () => {
   });
 
   it("löst ohne Fehler auf bei leeren Daten", async () => {
-    const { getArticles, getNewstickerItems, getVideos } =
-      await import("@/lib/data");
+    const {
+      getArticles,
+      getNewstickerItems,
+      getVideos,
+      getQuizData,
+      getStockData,
+    } = await import("@/lib/data");
     vi.mocked(getArticles).mockResolvedValue([]);
     vi.mocked(getNewstickerItems).mockResolvedValue([]);
     vi.mocked(getVideos).mockResolvedValue([]);
+    vi.mocked(getQuizData).mockResolvedValue(mockQuiz);
+    vi.mocked(getStockData).mockResolvedValue(mockStockData);
 
     const { default: HomePage } = await import("../page");
 
@@ -123,11 +172,18 @@ describe("HomePage — Server Component", () => {
   });
 
   it("ruft alle Datenquellen parallel ab", async () => {
-    const { getArticles, getNewstickerItems, getVideos } =
-      await import("@/lib/data");
+    const {
+      getArticles,
+      getNewstickerItems,
+      getVideos,
+      getQuizData,
+      getStockData,
+    } = await import("@/lib/data");
     vi.mocked(getArticles).mockResolvedValue([mockArticle]);
     vi.mocked(getNewstickerItems).mockResolvedValue([]);
     vi.mocked(getVideos).mockResolvedValue([]);
+    vi.mocked(getQuizData).mockResolvedValue(mockQuiz);
+    vi.mocked(getStockData).mockResolvedValue(mockStockData);
 
     const { default: HomePage } = await import("../page");
     await HomePage();
@@ -135,11 +191,18 @@ describe("HomePage — Server Component", () => {
     expect(getArticles).toHaveBeenCalledOnce();
     expect(getNewstickerItems).toHaveBeenCalledOnce();
     expect(getVideos).toHaveBeenCalledOnce();
+    expect(getQuizData).toHaveBeenCalledOnce();
+    expect(getStockData).toHaveBeenCalledOnce();
   });
 
   it("verwendet den ersten Artikel als Featured wenn keiner markiert ist", async () => {
-    const { getArticles, getNewstickerItems, getVideos } =
-      await import("@/lib/data");
+    const {
+      getArticles,
+      getNewstickerItems,
+      getVideos,
+      getQuizData,
+      getStockData,
+    } = await import("@/lib/data");
     const articlesWithoutFeatured = [
       { ...mockArticle, id: "a1", isFeatured: false },
       { ...mockArticle, id: "a2", slug: "zweiter", isFeatured: false },
@@ -147,6 +210,8 @@ describe("HomePage — Server Component", () => {
     vi.mocked(getArticles).mockResolvedValue(articlesWithoutFeatured);
     vi.mocked(getNewstickerItems).mockResolvedValue([]);
     vi.mocked(getVideos).mockResolvedValue([]);
+    vi.mocked(getQuizData).mockResolvedValue(mockQuiz);
+    vi.mocked(getStockData).mockResolvedValue(mockStockData);
 
     const { default: HomePage } = await import("../page");
 

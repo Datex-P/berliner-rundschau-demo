@@ -1,7 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import ArticleCard from "@/components/ArticleCard";
-import { getArticles, getNewstickerItems, getVideos } from "@/lib/data";
+import StockWidget from "@/components/StockWidget";
+import QuizWidget from "@/components/QuizWidget";
+import {
+  getArticles,
+  getNewstickerItems,
+  getVideos,
+  getQuizData,
+  getStockData,
+} from "@/lib/data";
 import { SITE_CONFIG } from "@/lib/config";
 import { formatDuration } from "@/lib/format";
 import RelativeTime from "@/components/ui/RelativeTime";
@@ -18,11 +26,15 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   // G-02: parallel data fetching
-  const [articles, newsticker, videos] = await Promise.all([
-    getArticles(),
-    getNewstickerItems(),
-    getVideos(),
-  ]);
+  const [articles, newsticker, videos, quizData, stockData] = await Promise.all(
+    [
+      getArticles(),
+      getNewstickerItems(),
+      getVideos(),
+      getQuizData(),
+      getStockData(),
+    ],
+  );
 
   const featured = articles.find((a) => a.isFeatured) ?? articles[0];
   const remaining = articles.filter((a) => a.id !== featured?.id);
@@ -106,6 +118,12 @@ export default async function HomePage() {
               ))}
             </div>
           </section>
+
+          {/* Börse */}
+          <StockWidget data={stockData} />
+
+          {/* Tagesquiz */}
+          <QuizWidget data={quizData} />
 
           {/* Compact Articles */}
           <section aria-labelledby="trending-heading">
