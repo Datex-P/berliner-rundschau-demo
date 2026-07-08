@@ -81,46 +81,48 @@ export default async function HomePage() {
           </h2>
 
           {/* Newsticker */}
-          <section aria-labelledby="newsticker-heading">
-            <h3
-              id="newsticker-heading"
-              className="text-lg font-bold font-heading text-(--color-text) mb-4 pb-2 border-b-2 border-(--color-accent)"
-            >
-              Newsticker
-            </h3>
-            <div className="space-y-0">
-              {newsticker.map((item) => (
-                <div
-                  key={item.id}
-                  className="py-3 border-b border-(--color-divider) last:border-b-0"
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-semibold text-(--color-primary)">
-                      {item.topic}
-                    </span>
-                    <RelativeTime
-                      dateTime={item.publicationDate}
-                      className="text-xs text-(--color-text-tertiary)"
-                    />
-                    {item.isPremium && (
-                      <span className="text-xs text-(--color-warning-text)">
-                        Premium
-                      </span>
-                    )}
-                  </div>
-                  <Link
-                    href={item.headline.href}
-                    className="text-sm font-medium text-(--color-text) hover:text-(--color-primary) transition-colors leading-snug"
+          {newsticker.length > 0 && (
+            <section aria-labelledby="newsticker-heading">
+              <h3
+                id="newsticker-heading"
+                className="text-lg font-bold font-heading text-(--color-text) mb-4 pb-2 border-b-2 border-(--color-accent)"
+              >
+                Newsticker
+              </h3>
+              <div className="space-y-0">
+                {newsticker.map((item) => (
+                  <div
+                    key={item.id}
+                    className="py-3 border-b border-(--color-divider) last:border-b-0"
                   >
-                    {item.headline.label}
-                  </Link>
-                </div>
-              ))}
-            </div>
-          </section>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-semibold text-(--color-primary)">
+                        {item.topic}
+                      </span>
+                      <RelativeTime
+                        dateTime={item.publicationDate}
+                        className="text-xs text-(--color-text-tertiary)"
+                      />
+                      {item.isPremium && (
+                        <span className="text-xs text-(--color-warning-text)">
+                          Premium
+                        </span>
+                      )}
+                    </div>
+                    <Link
+                      href={item.headline.href}
+                      className="text-sm font-medium text-(--color-text) hover:text-(--color-primary) transition-colors leading-snug"
+                    >
+                      {item.headline.label}
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* Börse */}
-          <StockWidget data={stockData} />
+          {stockData.indices.length > 0 && <StockWidget data={stockData} />}
 
           {/* Tagesquiz */}
           <QuizWidget data={quizData} />

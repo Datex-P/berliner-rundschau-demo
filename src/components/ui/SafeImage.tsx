@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
+import { useState } from "react";
 
 interface SafeImageProps {
   src: string;
@@ -24,7 +24,7 @@ export default function SafeImage({
   alt,
   width,
   height,
-  sizes = "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw",
+  sizes,
   priority = false,
   className,
   fill = false,
@@ -35,7 +35,7 @@ export default function SafeImage({
   if (!src || hasError) {
     return (
       <div
-        className="flex items-center justify-center bg-[var(--color-surface)] text-[var(--color-text-secondary)] w-full h-full absolute inset-0"
+        className="flex items-center justify-center bg-[var(--color-surface)] text-[var(--color-text-secondary)] w-full h-full"
         role="status"
         aria-label={alt}
       >

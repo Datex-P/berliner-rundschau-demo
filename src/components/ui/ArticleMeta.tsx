@@ -31,8 +31,8 @@ export default function ArticleMeta({
     <div
       className={cn("flex items-center gap-2 text-sm", textColor, className)}
     >
-      {variant === "default" && (
-        <div className="flex-shrink-0 w-6 h-6 rounded-full overflow-hidden">
+      {variant === "default" && author.avatar && (
+        <div className="relative flex-shrink-0 w-6 h-6 rounded-full overflow-hidden">
           <SafeImage
             src={author.avatar}
             alt={author.name}

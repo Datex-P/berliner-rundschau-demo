@@ -23,7 +23,7 @@ export default function ArticleCard({
   if (variant === "hero") {
     return (
       <article className="group relative overflow-hidden rounded-xl bg-(--color-surface) shadow-lg">
-        <div className="relative aspect-[21/9]">
+        <div className="relative aspect-[21/9] overflow-hidden">
           <SafeImage
             src={article.image.fallbackSrc}
             alt={article.image.alt}
