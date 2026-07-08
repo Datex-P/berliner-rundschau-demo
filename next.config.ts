@@ -26,6 +26,8 @@ const cmsImageDomains: { protocol: "http" | "https"; hostname: string }[] = (
   );
 
 const typo3Url = (process.env.TYPO3_URL ?? "").replace(/\/$/, "");
+const isLocalTypo3 =
+  typo3Url.includes(".ddev.site") || typo3Url.includes("localhost");
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
@@ -49,7 +51,7 @@ const nextConfig: NextConfig = {
   },
 
   async rewrites() {
-    if (!typo3Url) return [];
+    if (!typo3Url || !isLocalTypo3) return [];
     return [
       {
         source: "/cms-proxy/fileadmin/:path*",
