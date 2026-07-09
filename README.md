@@ -62,7 +62,7 @@ Seite (Server Component)
 
 ### CMS-Adapter
 
-Das Projekt unterstützt **11 Headless CMS** + einen Mock-Fallback. 4 Adapter sind mit diesem Projekt getestet, die weiteren 7 sind architektonisch identisch aufgebaut und lassen sich per Env Var aktivieren. Der Adapter wird per `CMS_ADAPTER` Env Var gewählt — oder automatisch anhand vorhandener CMS-Env-Vars erkannt:
+Das Projekt unterstützt **11 Headless CMS** + einen Mock-Fallback. Alle 11 Adapter sind mit diesem Projekt getestet und lassen sich per Env Var aktivieren. Der Adapter wird per `CMS_ADAPTER` Env Var gewählt — oder automatisch anhand vorhandener CMS-Env-Vars erkannt:
 
 | CMS | Adapter | SDK/Protokoll | Auth | Status |
 |---|---|---|---|---|
@@ -74,7 +74,7 @@ Das Projekt unterstützt **11 Headless CMS** + einen Mock-Fallback. 4 Adapter si
 | Sanity | `sanity` | SDK (`@sanity/client`) + GROQ | Token (optional) | Getestet |
 | Prismic | `prismic` | SDK (`@prismicio/client`) | Access Token (optional) | Getestet |
 | Strapi | `strapi` | REST (`safeFetch`) | API Token (Bearer) | Getestet |
-| Directus | `directus` | REST (`safeFetch`) | Static Token (Bearer) | Verfügbar |
+| Directus | `directus` | REST (`safeFetch`) | Static Token (Bearer) | Getestet |
 | Hygraph | `hygraph` | GraphQL (`safeFetch`) | Access Token (Bearer) | Getestet |
 | Payload | `payload` | REST (`safeFetch`) | API Key | Getestet |
 | Mock | `mock` | In-Memory | — | Getestet |
@@ -102,109 +102,26 @@ npm run dev
 
 **Was im Terminal erscheint:** `[cms] Using adapter: <name>`. Im Dev-Modus läuft automatisch ein Health-Check, der warnt wenn Articles, Categories oder Authors leer sind.
 
-##### Beispiel: SaaS-CMS (Contentful, Storyblok, DatoCMS, Sanity, Prismic, Hygraph)
+##### CMS-spezifische Anleitungen
 
-```bash
-# .env.local — Beispiel Contentful
-CMS_ADAPTER=contentful
-CONTENTFUL_SPACE_ID=your-space-id
-CONTENTFUL_ACCESS_TOKEN=your-cda-token
-CMS_IMAGE_DOMAINS=images.ctfassets.net
+Jedes CMS hat einen eigenen Guide mit Setup, Konfiguration, Seed-Script und Troubleshooting:
 
-# .env.local — Beispiel Storyblok
-CMS_ADAPTER=storyblok
-STORYBLOK_ACCESS_TOKEN=your-token
-CMS_IMAGE_DOMAINS=a.storyblok.com
-```
+| Typ | CMS | Guide |
+|---|---|---|
+| **SaaS** | Contentful | [docs/cms/contentful.md](docs/cms/contentful.md) |
+| | Storyblok | [docs/cms/storyblok.md](docs/cms/storyblok.md) |
+| | DatoCMS | [docs/cms/datocms.md](docs/cms/datocms.md) |
+| | Sanity | [docs/cms/sanity.md](docs/cms/sanity.md) |
+| | Prismic | [docs/cms/prismic.md](docs/cms/prismic.md) |
+| | Hygraph | [docs/cms/hygraph.md](docs/cms/hygraph.md) |
+| **Self-Hosted** | Strapi | [docs/cms/strapi.md](docs/cms/strapi.md) |
+| | Directus | [docs/cms/directus.md](docs/cms/directus.md) |
+| | Payload | [docs/cms/payload.md](docs/cms/payload.md) |
+| **Extern** | WordPress | [docs/cms/wordpress.md](docs/cms/wordpress.md) |
+| | TYPO3 | [docs/cms/typo3.md](docs/cms/typo3.md) |
 
-Kein lokaler Server nötig — nur API-Token eintragen und die CDN-Domain für Bilder freigeben.
+SaaS-CMS brauchen nur einen API-Token — kein lokaler Server nötig. Self-Hosted CMS (Strapi, Directus, Payload) müssen lokal laufen (Docker oder nativ).
 
-##### Beispiel: Self-Hosted CMS (Strapi, Directus, Payload)
-
-```bash
-# .env.local — Beispiel Strapi (lokal auf Port 1337)
-CMS_ADAPTER=strapi
-STRAPI_URL=http://localhost:1337
-STRAPI_API_TOKEN=your-api-token
-
-# .env.local — Beispiel Directus (lokal auf Port 8055)
-CMS_ADAPTER=directus
-DIRECTUS_URL=http://localhost:8055
-DIRECTUS_STATIC_TOKEN=your-static-token
-```
-
-Das CMS muss lokal laufen (Docker oder nativ). Bei nicht-localhost-URLs: Domain in `CMS_IMAGE_DOMAINS` eintragen.
-
-##### Beispiel: WordPress
-
-```bash
-# .env.local — WordPress (jede WP-Instanz mit REST API)
-CMS_ADAPTER=wordpress
-WORDPRESS_URL=https://example.com
-# Auth nur nötig wenn Posts nicht public:
-# WORDPRESS_USERNAME=user
-# WORDPRESS_APP_PASSWORD=xxxx-xxxx-xxxx-xxxx
-```
-
-Funktioniert mit jeder WordPress-Installation — keine Plugins nötig, WP REST API ist eingebaut.
-
-##### Beispiel: TYPO3
-
-```bash
-# .env.local — TYPO3 mit EXT:headless + EXT:news
-CMS_ADAPTER=typo3
-TYPO3_URL=https://cms.example.de
-# TYPO3_API_TOKEN=              # nur bei geschützten Endpoints
-# TYPO3_ARTICLE_PAGE=/news      # Slug der News-Listenseite (Default: /news)
-# TYPO3_LANG_PREFIX=/en         # bei mehrsprachigen Instanzen
-# TYPO3_FIELD_MAP={}            # Custom-Felder remappen
-```
-
-**Voraussetzungen:** TYPO3 muss [EXT:headless](https://extensions.typo3.org/extension/headless), [EXT:news](https://extensions.typo3.org/extension/news) und [friendsoftypo3/headless_news](https://github.com/TYPO3-Headless/headless_news) installiert haben. EXT:headless aktiviert den JSON-Modus (jede Seiten-URL liefert JSON statt HTML), EXT:news stellt News-Artikel bereit, headless_news serialisiert sie ins JSON-Format.
-
-**TYPO3-Besonderheiten:**
-- Kein eigener API-Endpoint — EXT:headless liefert JSON direkt über die Seiten-URL (`/news` statt `/api/articles`)
-- News-Artikel werden aus `content.colPos*`-Spalten der Seite extrahiert (Content-Elemente mit `type: "news_pi1"`)
-- Authors kommen als Objekt `{author, authorEmail}` — der Adapter erzeugt daraus synthetische Author-Objekte
-- Categories werden aus den News-Items gesammelt und dedupliziert
-- Suche ist client-seitig (Headline + Teaser) — für >200 Artikel wird [EXT:solr](https://extensions.typo3.org/extension/solr) empfohlen
-
-**Strapi-Besonderheiten:**
-- **Flat response (v5):** Strapi v5 liefert Felder direkt (`data.title`), NICHT mehr unter `data.attributes.title` wie in v4
-- **Bilder auf localhost:** Next.js Image Optimizer verweigert private IPs (`127.0.0.1`). Der Adapter umgeht das automatisch mit `unoptimized` für localhost-URLs — kein Workaround im `.env.local` nötig
-- **Populate — kein `*` für verschachtelte Relationen:** `populate=*` liefert nur Level-1-Felder. Author-Avatare und andere tief verschachtelte Medien brauchen explizite Dot-Notation: `populate=cover,category,author,author.avatar`
-- **Dynamic Zone:** Rich-Text-Blöcke kommen als Array `blocks` mit `__component: "shared.rich-text"`. Der Adapter erkennt automatisch ob `body` HTML oder Markdown ist (per `trimStart().startsWith('<')`)
-- **`documentId` statt `id`** für Mutations (PUT, DELETE) — `id` ist nur für Lesezugriffe
-- **Beschreibungsfeld:** Strapi erlaubt je nach Schema-Konfiguration ein kürzeres `description`-Feld (z.B. max. 80 Zeichen) — bei Seed-Scripts beachten
-- Kein eigenes Seed-Script im Repo — Demo-Daten müssen manuell oder per eigenem Script angelegt werden
-
-**DatoCMS-Besonderheiten:**
-- **Async Write API (CMA v3):** Alle Schreiboperationen (`POST /uploads`, `POST /item-types/{id}/fields`) liefern HTTP 202 mit einem Job-Token zurück — nicht das Ergebnis. Das Ergebnis muss per Polling unter `GET /job-results/{job-id}` abgeholt werden. Fehler stehen im Feld `payload.data` als Array von `api_error`-Objekten (NICHT in `payload.status`)
-- **`type` ist ein reservierter Field-API-Key** und darf nicht als Feldname verwendet werden (`VALIDATION_RESERVED` Error). Felder die einen Typ repräsentieren (z.B. `ticker_type`) entsprechend benennen
-- **GraphQL CDA: automatische camelCase-Konvertierung:** Alle snake_case-Feldnamen (`reading_time_minutes`) werden in der CDA-GraphQL-API automatisch zu camelCase (`readingTimeMinutes`). Im Adapter immer camelCase-Namen verwenden
-- **Link-Felder brauchen zwingend einen `item_item_type`-Validator** mit mindestens einem erlaubten Modell. Ein leeres `item_types: []` ist valide, bedeutet aber „kein Modell erlaubt" — nicht „alle Modelle erlaubt"
-- **JSON-Felder über CDA:** JSON-Felder in der CDA liefern den gespeicherten Wert direkt zurück (oder `null`). Über die CMA können nur flache JSON-Objekte gespeichert werden — Arrays auf oberster Ebene werden mit `INVALID_FORMAT` abgelehnt. Workaround: `{ list: [...] }` oder JSON als Text-Feld speichern
-- **Slug-Felder brauchen einen `slug_title_field`-Validator** mit der ID des Titelfeldes — sonst schlägt die Feldanlage fehl
-- **Singleton-Modelle** (`singleton: true`) haben in der CDA kein `all`-Präfix, sondern werden direkt per Modell-Name abgefragt (z.B. `query { siteConfig { ... } }` statt `allSiteConfigs`)
-
-**Hygraph-Besonderheiten:**
-- **JSON-Felder liefern geparste Objekte:** Hygraph JSON-Felder (`type: JSON`) kommen über die Content API als JavaScript-Objekte, NICHT als Strings. `JSON.parse()` auf bereits geparste Objekte crasht leise — der Adapter prüft mit `typeof === "string"` vor dem Parsen
-- **Management API ist asynchron:** Jede Schema-Mutation (Model/Field erstellen) startet eine Migration. Nur eine gleichzeitig erlaubt — das Seed-Script pollt nach jeder Mutation auf `status: "SUCCESS"` bevor die nächste gesendet wird
-- **Kein eingebautes Singleton:** Navigation, SiteConfig etc. werden über ein `slug`-Feld mit festem Wert `"singleton"` und `where: { slug: "singleton" }` abgefragt
-- **Public Content API für Mutations:** PAT-Token Content Permissions können trotz korrekter UI-Konfiguration fehlschlagen. Das Seed-Script nutzt die Public Content API (unauthentifiziert) als zuverlässige Alternative
-- **Body als String-Feld:** RichText-Felder benötigen Slate AST für Mutations — der Adapter speichert HTML als STRING-Feld und rendert es im Frontend mit DOMPurify
-- **Bilder als JSON-Feld:** Das Asset-Model hat kein `altText`-Feld. Bilder werden als JSON mit `url` + `alt` + `width` + `height` gespeichert
-- **Stages als Query-Variable:** Jede Query braucht `stage: $stage` (PUBLISHED/DRAFT) — ohne Stage-Variable werden nur DRAFT-Inhalte geliefert
-
-**Payload-Besonderheiten:**
-- **Lexical Rich Text:** Payload v3 verwendet den Lexical Editor. Body-Inhalte werden als Lexical AST JSON gespeichert (`{root: {children: [{type, children, ...}]}}`). Der Adapter konvertiert den AST rekursiv zu HTML — verschachtelte Inline-Formatting (bold + italic + underline) wird über Bit-Flags im `format`-Feld kodiert (1=bold, 2=italic, 8=underline, kombinierbar)
-- **REST API mit `depth`-Parameter:** Relations werden per Default als IDs geliefert. `?depth=2` löst verschachtelte Relationen auf (z.B. Article → Author → Avatar). Ohne `depth` kommen nur IDs statt Objekten
-- **MongoDB erforderlich:** Payload v3 läuft mit MongoDB (oder PostgreSQL). Lokal: `brew services start mongodb-community` auf macOS, dann `mongodb://127.0.0.1:27017/<db-name>` in `payload.config.ts`
-- **Collection-Schema in Code:** Content-Types werden als TypeScript-Dateien definiert (`src/collections/*.ts`), nicht über eine API. Schema-Änderungen erfordern einen Server-Neustart
-- **JWT-Authentifizierung:** Login über `POST /api/users/login` liefert ein JWT-Token. Seed-Scripts nutzen `Authorization: JWT <token>` für alle Schreiboperationen
-- **Port-Trennung:** Payload ist selbst eine Next.js-App — bei parallelem Betrieb mit der Berliner Rundschau auf separatem Port starten (z.B. Port 3001 für Payload, Port 3000 für die App)
-- **`createdAt`/`updatedAt` automatisch:** Payload fügt diese Felder automatisch zu allen Collections hinzu — nicht im Schema definieren, aber im Adapter verfügbar
-- **Bilder als Upload-Collection:** Media-Dateien werden über eine eigene Upload-Collection verwaltet. Der Adapter nutzt externe Bild-URLs (Unsplash) direkt per `CMS_IMAGE_DOMAINS`
 
 ##### Verifizierung: So prüfst du ob es funktioniert
 
@@ -230,79 +147,11 @@ Nach `npm run dev` die folgenden Seiten im Browser öffnen:
 
 Statt Inhalte manuell anzulegen, können die mitgelieferten Seed-Scripts ein komplettes Demo-Set erstellen: 8 Artikel, 6 Kategorien, 4 Autoren, 6 Newsticker-Einträge, Börsendaten und ein Tagesquiz — alles idempotent (wiederholtes Ausführen ist sicher).
 
-```bash
-# Contentful (Management API Token von https://app.contentful.com/account/profile/cma_tokens)
-node cms-seeds/seed-contentful.mjs \
-  --space-id <space-id> \
-  --management-token <cma-token> \
-  [--environment master]
-
-# Storyblok (Personal Access Token von app.storyblok.com → My Account)
-node cms-seeds/seed-storyblok.mjs \
-  --space-id <space-id> \
-  --token <personal-access-token>
-
-# WordPress.com (OAuth2 Bearer Token)
-node cms-seeds/seed-wordpress.mjs \
-  --site example.wordpress.com \
-  --token <bearer-token>
-
-# WordPress Self-Hosted (Application Password)
-node cms-seeds/seed-wordpress.mjs \
-  --url https://example.com \
-  --user admin \
-  --app-password <app-password>
-
-# Sanity (API Token mit Editor-Rechten aus sanity.io/manage → API → Tokens)
-node cms-seeds/seed-sanity.mjs \
-  --project-id <project-id> \
-  --token <editor-token> \
-  [--dataset production]
-
-# Prismic (Permanent Access Token aus Settings → API & Security)
-node cms-seeds/seed-prismic.mjs \
-  --repository <repo-name> \
-  --write-token <token> \
-  --custom-types-token <token>
-
-# TYPO3 (DDEV + MySQL — kein REST-API, braucht laufendes DDEV-Projekt)
-bash cms-seeds/seed-typo3.sh \
-  [--project-dir ~/Desktop/typo3-demo]
-
-# DatoCMS (Full-Access API Token aus Settings → API Tokens)
-node cms-seeds/seed-datocms.mjs \
-  --token <full-access-api-token>
-
-# Hygraph (PAT mit Management + Content API Permissions aus Settings → API Access → Permanent Auth Tokens)
-node cms-seeds/seed-hygraph.mjs \
-  --token <permanent-auth-token> \
-  --project-id <project-id> \
-  --region eu-west-2
-
-# Payload (Admin-Account mit Schreibrechten)
-node cms-seeds/seed-payload.mjs \
-  --url http://localhost:3001 \
-  --email <admin-email> \
-  --password <admin-password>
-```
-
-##### Hinweise zu einzelnen CMS
-
-| CMS | Token-Typ | Besonderheit |
-|---|---|---|
-| **Contentful** | CMA Token (Management API) | Erstellt Content-Types + Einträge + publiziert automatisch |
-| **Storyblok** | Personal Access Token | Erstellt Components + Stories, publiziert automatisch |
-| **WordPress** | Bearer Token (WP.com) oder App Password (Self-Hosted) | Autoren = WordPress-User-Accounts, können nicht per Script erstellt werden |
-| **Sanity** | API Token (Editor-Rechte) | Dokumente sind **sofort live** — kein manuelles Publizieren nötig |
-| **Prismic** | Permanent Access Token | Erstellt Custom Types + Dokumente als **Drafts** — nach dem Seed im Dashboard über "Migration release" publizieren |
-| **TYPO3** | Kein Token | Schreibt direkt in die DDEV-MySQL-Datenbank, DDEV muss laufen |
-| **DatoCMS** | Full-Access API Token | Erstellt Content-Models (idempotent) + Einträge, publiziert automatisch |
-| **Hygraph** | Permanent Auth Token (Management + Content API) | Schema-Erstellung asynchron (Migration-Polling), Content über Public API, publiziert automatisch |
-| **Payload** | Admin-Account (Email + Passwort) | JWT-Login, Lexical-Body als AST (nicht HTML), MongoDB muss lokal laufen, idempotent (löscht + erstellt neu) |
+Jeder CMS-Guide unter [docs/cms/](docs/cms/) enthält den exakten Seed-Befehl, den benötigten Token-Typ und CMS-spezifische Hinweise.
 
 ##### Nach dem Seed
 
-1. `.env.local` auf das gesedte CMS umstellen (siehe Beispiele oben)
+1. `.env.local` auf das gesedte CMS umstellen (siehe CMS-Guide)
 2. **Prismic:** Im Dashboard alle Dokumente über "Migration release" publizieren (CDN liefert nur Published Content)
 3. `npm run dev` — die Seite sollte alle Demo-Inhalte anzeigen
 
@@ -358,12 +207,11 @@ CMS_IMAGE_DOMAINS=images.ctfassets.net,a.storyblok.com
 |---|---|
 | Leere Seiten | `CMS_ADAPTER=mock` setzen — wenn Mock funktioniert, liegt es am CMS |
 | "Unknown adapter" Error | Tippfehler in `CMS_ADAPTER`? Gültig: contentful, storyblok, datocms, sanity, prismic, strapi, directus, hygraph, payload, wordpress, typo3, mock |
-| Leere Artikel (TYPO3) | EXT:news installiert? News-Seite unter `TYPO3_ARTICLE_PAGE` erreichbar? EXT:headless aktiviert? |
-| Bilder fehlen (Strapi, lokal) | Next.js blockiert localhost-Bilder — der Adapter bypassed das automatisch. Wenn trotzdem leer: Strapi-Medien hochgeladen und veröffentlicht? |
-| Author-Avatare fehlen (Strapi) | `populate=*` liefert keine verschachtelten Medien. Der Adapter nutzt bereits `populate=cover,category,author,author.avatar` — Avatare müssen in Strapi unter dem Author-Eintrag hochgeladen sein |
 | "Multiple CMS env var sets" | Mehrere CMS-Vars gesetzt ohne explizites `CMS_ADAPTER` — einen setzen |
 | Bilder laden nicht | `CMS_IMAGE_DOMAINS` prüfen, Redeploy nötig nach Änderung |
 | Build bricht ab mit "NEXT_PUBLIC_" | Token-Leak-Schutz: CMS-Tokens dürfen NICHT mit `NEXT_PUBLIC_` beginnen |
+
+CMS-spezifische Probleme → siehe Troubleshooting-Sektion im jeweiligen [CMS-Guide](docs/cms/).
 
 #### Eigenen Adapter schreiben
 
