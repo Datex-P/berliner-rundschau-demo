@@ -230,10 +230,14 @@ const prismicAdapter: CmsAdapter = {
       const data = (doc.data ?? {}) as Record<string, unknown>;
       return {
         id: String(doc.id ?? ""),
-        headline: String(data.headline ?? ""),
-        text: String(data.text ?? ""),
-        timestamp: String(doc.first_publication_date ?? ""),
-        url: String(data.url ?? ""),
+        type: "TimelineTeaser",
+        topic: String(data.topic ?? ""),
+        headline: {
+          label: String(data.headline ?? ""),
+          href: String(data.href ?? ""),
+        },
+        publicationDate: String(doc.first_publication_date ?? ""),
+        isPremium: data.isPremium === true,
       };
     });
   },
@@ -301,11 +305,12 @@ const prismicAdapter: CmsAdapter = {
     if (docs.length === 0) return null;
     const doc = docs[0] as Record<string, unknown>;
     const data = (doc.data ?? {}) as Record<string, unknown>;
-    return {
-      id: String(doc.id ?? ""),
-      title: String(data.title ?? ""),
-      questions: Array.isArray(data.questions) ? data.questions : [],
-    };
+    const jsonStr = String(data.json ?? "{}");
+    try {
+      return JSON.parse(jsonStr);
+    } catch {
+      return null;
+    }
   },
 
   async fetchStockData(): Promise<unknown> {
@@ -313,10 +318,12 @@ const prismicAdapter: CmsAdapter = {
     if (docs.length === 0) return null;
     const doc = docs[0] as Record<string, unknown>;
     const data = (doc.data ?? {}) as Record<string, unknown>;
-    return {
-      stocks: Array.isArray(data.stocks) ? data.stocks : [],
-      updatedAt: String(doc.last_publication_date ?? ""),
-    };
+    const jsonStr = String(data.json ?? "{}");
+    try {
+      return JSON.parse(jsonStr);
+    } catch {
+      return null;
+    }
   },
 };
 
