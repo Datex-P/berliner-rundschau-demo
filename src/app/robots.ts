@@ -5,8 +5,9 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        disallow: ["/"],
+        allow: ["/"],
       },
     ],
+    sitemap: `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://berliner-rundschau.vercel.app"}/sitemap.xml`,
   };
 }

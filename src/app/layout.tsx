@@ -15,14 +15,14 @@ const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-heading",
-  display: "swap",
+  display: "optional",
 });
 
 const inter = Inter({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-body",
-  display: "swap",
+  display: "optional",
 });
 
 export const metadata: Metadata = {

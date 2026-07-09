@@ -10,12 +10,14 @@ interface ArticleCardProps {
   article: Article;
   headingLevel?: "h2" | "h3" | "h4";
   variant?: "default" | "hero" | "compact";
+  priority?: boolean;
 }
 
 export default function ArticleCard({
   article,
   headingLevel = "h3",
   variant = "default",
+  priority = false,
 }: ArticleCardProps) {
   const Heading = headingLevel;
   const href = routes.article(article.slug);
@@ -114,6 +116,7 @@ export default function ArticleCard({
           width={IMAGE_DIMENSIONS.card.width}
           height={IMAGE_DIMENSIONS.card.height}
           fill
+          priority={priority}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           className="object-cover group-hover:scale-105 transition-transform duration-300"
           unavailableLabel="Bild nicht verfügbar"

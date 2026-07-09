@@ -6,7 +6,7 @@
   --color-primary: #15803d;
   --color-on-primary: #ffffff;
   --color-secondary: #334155;
-  --color-accent: #0ea5e9;
+  --color-accent: #0369a1;
   --color-bg: #f8fafc;
   --color-text: #0f172a;
 
@@ -14,8 +14,8 @@
   --color-primary-hover: color-mix(in srgb, #15803d, black 12%);
   --color-primary-active: color-mix(in srgb, #15803d, black 20%);
   --color-primary-light: color-mix(in srgb, #15803d, white 92%);
-  --color-accent-hover: color-mix(in srgb, #0ea5e9, black 12%);
-  --color-accent-light: color-mix(in srgb, #0ea5e9, white 85%);
+  --color-accent-hover: color-mix(in srgb, #0369a1, black 12%);
+  --color-accent-light: color-mix(in srgb, #0369a1, white 85%);
   --color-secondary-hover: color-mix(in srgb, #334155, black 12%);
 
   /* === Text-Varianten === */
@@ -35,17 +35,17 @@
   --color-on-overlay: #ffffff;
 
   /* === Status-Farben (semantisch) === */
-  --color-success: #10b981;
+  --color-success: #047857;
   --color-success-light: #d1fae5;
   --color-success-text: #065f46;
   --color-warning: #f59e0b;
   --color-warning-light: #fef3c7;
   --color-warning-text: #92400e;
-  --color-error: #ef4444;
+  --color-error: #dc2626;
   --color-error-light: #fee2e2;
   --color-error-text: #991b1b;
-  --color-info: #0ea5e9;
-  --color-info-light: color-mix(in srgb, #0ea5e9, white 90%);
+  --color-info: #0369a1;
+  --color-info-light: color-mix(in srgb, #0369a1, white 90%);
   --color-info-text: #075985;
 
   /* === Interaktiv === */
@@ -64,14 +64,14 @@
   --color-primary: color-mix(in srgb, #15803d, white 20%);
   --color-on-primary: #0f172a;
   --color-secondary: color-mix(in srgb, #334155, white 40%);
-  --color-accent: color-mix(in srgb, #0ea5e9, white 15%);
+  --color-accent: color-mix(in srgb, #0369a1, white 15%);
   --color-bg: color-mix(in srgb, #0f172a, black 15%);
   --color-text: color-mix(in srgb, #f8fafc, black 5%);
 
   --color-primary-hover: color-mix(in srgb, #15803d, white 30%);
   --color-primary-light: color-mix(in srgb, #15803d, black 70%);
-  --color-accent-hover: color-mix(in srgb, #0ea5e9, white 25%);
-  --color-accent-light: color-mix(in srgb, #0ea5e9, black 70%);
+  --color-accent-hover: color-mix(in srgb, #0369a1, white 25%);
+  --color-accent-light: color-mix(in srgb, #0369a1, black 70%);
   --color-primary-active: color-mix(in srgb, #15803d, white 30%);
   --color-secondary-hover: color-mix(in srgb, #334155, white 50%);
 
@@ -88,18 +88,18 @@
   --color-overlay: color-mix(in srgb, #0f172a, black 50%);
   --color-on-overlay: #f8fafc;
 
-  --color-success-light: color-mix(in srgb, #10b981, black 70%);
+  --color-success-light: color-mix(in srgb, #047857, black 70%);
   --color-warning-light: color-mix(in srgb, #f59e0b, black 70%);
-  --color-error-light: color-mix(in srgb, #ef4444, black 70%);
-  --color-info-light: color-mix(in srgb, #0ea5e9, black 70%);
-  --color-success: #10b981;
+  --color-error-light: color-mix(in srgb, #dc2626, black 70%);
+  --color-info-light: color-mix(in srgb, #0369a1, black 70%);
+  --color-success: #047857;
   --color-success-text: #d1fae5;
   --color-warning: #f59e0b;
   --color-warning-text: #fef3c7;
-  --color-error: #ef4444;
+  --color-error: #dc2626;
   --color-error-text: #fee2e2;
-  --color-info: color-mix(in srgb, #0ea5e9, white 15%);
-  --color-info-text: color-mix(in srgb, #0ea5e9, white 80%);
+  --color-info: color-mix(in srgb, #0369a1, white 15%);
+  --color-info-text: color-mix(in srgb, #0369a1, white 80%);
   --color-focus-ring: color-mix(in srgb, #15803d, white 20%);
 
   --color-link: color-mix(in srgb, #15803d, white 20%);
