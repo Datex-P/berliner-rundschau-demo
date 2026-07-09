@@ -25,6 +25,7 @@ Die Ausgabe vom Seed-Script in `.env.local` eintragen:
 ```bash
 CMS_ADAPTER=hygraph
 HYGRAPH_ENDPOINT=<dein-content-api-endpoint>
+# HYGRAPH_ACCESS_TOKEN=       # nur bei Permanent Auth Token
 CMS_IMAGE_DOMAINS=media.graphassets.com
 ```
 

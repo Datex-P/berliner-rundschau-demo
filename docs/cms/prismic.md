@@ -25,7 +25,7 @@ Die Ausgabe vom Seed-Script in `.env.local` eintragen:
 
 ```bash
 CMS_ADAPTER=prismic
-PRISMIC_REPO=<dein-repo-name>
+PRISMIC_REPOSITORY=<dein-repo-name>
 CMS_IMAGE_DOMAINS=images.prismic.io
 ```
 
