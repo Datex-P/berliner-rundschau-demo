@@ -27,6 +27,14 @@ STORYBLOK_ACCESS_TOKEN=<dein-token>
 CMS_IMAGE_DOMAINS=a.storyblok.com
 ```
 
+Optionale Felder:
+
+```bash
+# STORYBLOK_VERSION=published     # published oder draft (Default: published)
+# STORYBLOK_ARTICLE_TYPE=article  # Content-Type Name (Default: article)
+# STORYBLOK_FIELD_MAP={}          # Custom-Felder remappen
+```
+
 ## 3. Starten
 
 ```bash

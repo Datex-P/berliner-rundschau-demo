@@ -28,8 +28,15 @@ Die Ausgabe vom Seed-Script in `.env.local` eintragen:
 CMS_ADAPTER=sanity
 SANITY_PROJECT_ID=<deine-project-id>
 SANITY_DATASET=production
-# SANITY_TOKEN=               # nur bei privaten Datasets
+# SANITY_TOKEN=                   # nur bei privaten Datasets
 CMS_IMAGE_DOMAINS=cdn.sanity.io
+```
+
+Optionale Felder:
+
+```bash
+# SANITY_ARTICLE_TYPE=article     # Document-Type Name (Default: article)
+# SANITY_FIELD_MAP={}             # Custom-Felder remappen
 ```
 
 ## 3. Starten

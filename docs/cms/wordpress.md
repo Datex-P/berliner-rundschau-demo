@@ -36,6 +36,15 @@ CMS_IMAGE_DOMAINS=example.wordpress.com,wp.com,i0.wp.com,secure.gravatar.com
 # WordPress Self-Hosted
 CMS_ADAPTER=wordpress
 WORDPRESS_URL=https://example.com
+WORDPRESS_USERNAME=<dein-username>
+WORDPRESS_APP_PASSWORD=<dein-app-password>
+```
+
+Optionale Felder:
+
+```bash
+# WORDPRESS_POST_TYPE=posts       # Post-Type (Default: posts)
+# WORDPRESS_FIELD_MAP={}          # Custom-Felder remappen
 ```
 
 ## 3. Starten

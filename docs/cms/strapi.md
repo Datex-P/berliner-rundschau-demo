@@ -31,6 +31,14 @@ CMS_IMAGE_DOMAINS=localhost
 
 Bei gehosteter Instanz: `localhost` durch die Domain ersetzen.
 
+Optionale Felder:
+
+```bash
+# STRAPI_VERSION=v5               # v4 oder v5 (Default: v5)
+# STRAPI_ARTICLE_COLLECTION=articles  # Collection-Name (Default: articles)
+# STRAPI_FIELD_MAP={}             # Custom-Felder remappen
+```
+
 ## 3. Starten
 
 ```bash

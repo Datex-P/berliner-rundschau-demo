@@ -62,6 +62,13 @@ DIRECTUS_STATIC_TOKEN=directus-demo-static-token
 CMS_IMAGE_DOMAINS=images.unsplash.com
 ```
 
+Optionale Felder:
+
+```bash
+# DIRECTUS_ARTICLE_COLLECTION=articles  # Collection-Name (Default: articles)
+# DIRECTUS_FIELD_MAP={}           # Custom-Felder remappen
+```
+
 ## 4. Starten
 
 ```bash

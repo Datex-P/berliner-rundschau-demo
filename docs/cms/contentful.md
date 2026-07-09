@@ -34,6 +34,13 @@ CONTENTFUL_FIELD_MAP={"headline":"title","teaser":"excerpt","image":"heroImage",
 
 Den **CDA Token** (Content Delivery API) findest du unter: Settings → API Keys → dein Key. Das ist ein anderer Token als der CMA Token vom Seed-Script.
 
+Optionale Felder:
+
+```bash
+# CONTENTFUL_ENVIRONMENT=master   # Environment (Default: master)
+# CONTENTFUL_ARTICLE_TYPE=article # Content-Type ID (Default: article)
+```
+
 ## 3. Starten
 
 ```bash

@@ -29,6 +29,14 @@ CMS_IMAGE_DOMAINS=www.datocms-assets.com
 
 Den Read-Only Token findest du unter Settings → API Tokens.
 
+Optionale Felder:
+
+```bash
+# DATOCMS_ENVIRONMENT=main        # Environment (Default: main)
+# DATOCMS_ARTICLE_MODEL=article   # Model-API-Key (Default: article)
+# DATOCMS_FIELD_MAP={}            # Custom-Felder remappen
+```
+
 ## 3. Starten
 
 ```bash

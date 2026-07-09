@@ -41,6 +41,13 @@ PAYLOAD_API_KEY=<dein-api-key>
 CMS_IMAGE_DOMAINS=localhost
 ```
 
+Optionale Felder:
+
+```bash
+# PAYLOAD_ARTICLE_COLLECTION=articles  # Collection-Slug (Default: articles)
+# PAYLOAD_FIELD_MAP={}            # Custom-Felder remappen
+```
+
 ## 4. Starten
 
 ```bash

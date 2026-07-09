@@ -32,10 +32,11 @@ CMS_IMAGE_DOMAINS=cms.example.de
 Optionale Felder:
 
 ```bash
-# TYPO3_API_TOKEN=              # nur bei geschützten Endpoints
-# TYPO3_ARTICLE_PAGE=/news      # Slug der News-Listenseite (Default: /news)
-# TYPO3_LANG_PREFIX=/en         # bei mehrsprachigen Instanzen
-# TYPO3_FIELD_MAP={}            # Custom-Felder remappen
+# TYPO3_API_TOKEN=                # nur bei geschützten Endpoints
+# TYPO3_ARTICLE_PAGE=/news        # Slug der News-Listenseite (Default: /news)
+# TYPO3_CONTENT_PAGES=["/", "/news"]  # Seiten mit Content-Elementen
+# TYPO3_LANG_PREFIX=/en           # bei mehrsprachigen Instanzen
+# TYPO3_FIELD_MAP={}              # Custom-Felder remappen
 ```
 
 ## 3. Starten

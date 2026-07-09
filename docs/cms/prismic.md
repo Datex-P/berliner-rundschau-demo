@@ -29,6 +29,14 @@ PRISMIC_REPOSITORY=<dein-repo-name>
 CMS_IMAGE_DOMAINS=images.prismic.io
 ```
 
+Optionale Felder:
+
+```bash
+# PRISMIC_ACCESS_TOKEN=           # nur bei privaten Repositories
+# PRISMIC_ARTICLE_TYPE=article    # Custom-Type Name (Default: article)
+# PRISMIC_FIELD_MAP={}            # Custom-Felder remappen
+```
+
 ## 3. Starten
 
 ```bash
