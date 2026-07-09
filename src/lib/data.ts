@@ -37,6 +37,8 @@ import {
   defaultSiteConfig,
   defaultQuiz,
   defaultStockData,
+  defaultNewsticker,
+  defaultBreakingNews,
 } from "./cms/defaults";
 
 const adapterTag = () => `cms:${process.env.CMS_ADAPTER ?? "auto"}`;
@@ -156,13 +158,14 @@ export async function getNewstickerItems(): Promise<NewstickerItem[]> {
   cacheTag(adapterTag(), "newsticker");
   try {
     const adapter = await resolveAdapter();
-    return parseNewstickerResponse(await adapter.fetchNewsticker());
+    const items = parseNewstickerResponse(await adapter.fetchNewsticker());
+    return items.length > 0 ? items : defaultNewsticker;
   } catch (err) {
     console.error(
-      "[cms] Newsticker fetch failed, returning empty:",
+      "[cms] Newsticker fetch failed, using default:",
       sanitizeError(err),
     );
-    return [];
+    return defaultNewsticker;
   }
 }
 
@@ -226,13 +229,14 @@ export async function getBreakingNewsItems(): Promise<BreakingNews[]> {
   cacheTag(adapterTag(), "breaking-news");
   try {
     const adapter = await resolveAdapter();
-    return parseBreakingNewsResponse(await adapter.fetchBreakingNews());
+    const items = parseBreakingNewsResponse(await adapter.fetchBreakingNews());
+    return items.length > 0 ? items : defaultBreakingNews;
   } catch (err) {
     console.error(
-      "[cms] BreakingNews fetch failed, returning empty:",
+      "[cms] BreakingNews fetch failed, using default:",
       sanitizeError(err),
     );
-    return [];
+    return defaultBreakingNews;
   }
 }
 

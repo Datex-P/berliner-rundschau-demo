@@ -44,6 +44,11 @@ export default function SafeImage({
     );
   }
 
+  // Localhost-URLs (Strapi dev): Next.js image optimizer blockiert private IPs (SSRF-Schutz).
+  // unoptimized lässt den Browser direkt fetchen — nur in dev relevant.
+  const isLocalhost =
+    src.startsWith("http://localhost") || src.startsWith("http://127.0.0.1");
+
   return (
     <Image
       src={src}
@@ -54,6 +59,7 @@ export default function SafeImage({
       priority={priority}
       fill={fill}
       className={className}
+      unoptimized={isLocalhost}
       onError={() => setHasError(true)}
     />
   );

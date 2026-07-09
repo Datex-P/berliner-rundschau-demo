@@ -78,11 +78,13 @@ function mapRecord(record: Record<string, unknown>): unknown {
 
   const img = record[mapField(fm, "image")] as Record<string, unknown> | null;
   const asset = img?.asset as Record<string, unknown> | null;
-  const dims = (asset?.metadata as Record<string, unknown>)?.dimensions as
-    | Record<string, unknown>
-    | null;
+  const dims = (asset?.metadata as Record<string, unknown>)
+    ?.dimensions as Record<string, unknown> | null;
 
-  const cat = record[mapField(fm, "category")] as Record<string, unknown> | null;
+  const cat = record[mapField(fm, "category")] as Record<
+    string,
+    unknown
+  > | null;
   const auth = record[mapField(fm, "author")] as Record<string, unknown> | null;
   const authAvatar = auth
     ? (auth.avatar as Record<string, unknown> | null)
@@ -263,16 +265,20 @@ const sanityAdapter: CmsAdapter = {
 
   async fetchNewsticker(): Promise<unknown[]> {
     const results = await safeQuery<Record<string, unknown>[]>(
-      `*[_type == "newsticker"] | order(_createdAt desc) [0...20] { _id, headline, text, _createdAt, url }`,
+      `*[_type == "newsticker"] | order(_createdAt desc) [0...20] { _id, headline, href, topic, isPremium, _createdAt }`,
       {},
       [],
     );
     return results.map((r) => ({
       id: String(r._id ?? ""),
-      headline: String(r.headline ?? ""),
-      text: String(r.text ?? ""),
-      timestamp: String(r._createdAt ?? ""),
-      url: String(r.url ?? ""),
+      type: "TimelineTeaser",
+      topic: String(r.topic ?? ""),
+      headline: {
+        label: String(r.headline ?? ""),
+        href: String(r.href ?? ""),
+      },
+      publicationDate: String(r._createdAt ?? ""),
+      isPremium: r.isPremium === true,
     }));
   },
 
@@ -331,29 +337,32 @@ const sanityAdapter: CmsAdapter = {
 
   async fetchQuiz(): Promise<unknown> {
     const result = await safeQuery<Record<string, unknown> | null>(
-      `*[_type == "quiz"][0] { _id, title, questions }`,
+      `*[_type == "quiz"][0] { _id, json }`,
       {},
       null,
     );
     if (!result) return null;
-    return {
-      id: String(result._id ?? ""),
-      title: String(result.title ?? ""),
-      questions: Array.isArray(result.questions) ? result.questions : [],
-    };
+    const jsonStr = String(result.json ?? "{}");
+    try {
+      return JSON.parse(jsonStr);
+    } catch {
+      return null;
+    }
   },
 
   async fetchStockData(): Promise<unknown> {
     const result = await safeQuery<Record<string, unknown> | null>(
-      `*[_type == "stockData"][0] { stocks, _updatedAt }`,
+      `*[_type == "stockData"][0] { _id, json }`,
       {},
       null,
     );
     if (!result) return null;
-    return {
-      stocks: Array.isArray(result.stocks) ? result.stocks : [],
-      updatedAt: String(result._updatedAt ?? ""),
-    };
+    const jsonStr = String(result.json ?? "{}");
+    try {
+      return JSON.parse(jsonStr);
+    } catch {
+      return null;
+    }
   },
 };
 

@@ -10,20 +10,26 @@ if (leaked.length > 0) {
   );
 }
 
-const cmsImageDomains: { protocol: "http" | "https"; hostname: string }[] = (
-  process.env.CMS_IMAGE_DOMAINS ?? ""
-)
+const cmsImageDomains: {
+  protocol: "http" | "https";
+  hostname: string;
+  port?: string;
+}[] = (process.env.CMS_IMAGE_DOMAINS ?? "")
   .split(",")
   .map((h) => h.trim())
   .filter(Boolean)
-  .flatMap((hostname) =>
-    hostname.includes(".ddev.site") || hostname.includes("localhost")
+  .flatMap((entry) => {
+    const [hostname, port] = entry.split(":");
+    const isLocal =
+      hostname.includes(".ddev.site") || hostname.includes("localhost");
+    const base = { hostname, ...(port ? { port } : {}) };
+    return isLocal
       ? [
-          { protocol: "http" as const, hostname },
-          { protocol: "https" as const, hostname },
+          { protocol: "http" as const, ...base },
+          { protocol: "https" as const, ...base },
         ]
-      : [{ protocol: "https" as const, hostname }],
-  );
+      : [{ protocol: "https" as const, ...base }];
+  });
 
 const typo3Url = (process.env.TYPO3_URL ?? "").replace(/\/$/, "");
 const isLocalTypo3 =
