@@ -5,27 +5,36 @@
 ## Voraussetzungen
 
 - Prismic-Repository
-- Access Token (falls Repository nicht public)
+- Write API Token (Settings → API & Security → Generate a Write Token) für Seed-Script
 
-## Konfiguration (.env.local)
-
-```bash
-CMS_ADAPTER=prismic
-PRISMIC_REPO=your-repo-name
-# PRISMIC_ACCESS_TOKEN=           # nur bei privaten Repos
-CMS_IMAGE_DOMAINS=images.prismic.io
-```
-
-## Demo-Daten (Seed Script)
+## 1. Demo-Daten erstellen
 
 ```bash
 node cms-seeds/seed-prismic.mjs --repo <repo-name> --write-token <write-api-token>
 ```
 
-- **Token-Typ:** Write API Token (Settings → API & Security → Generate a Write Token)
 - Content API Token (Read) reicht nicht für das Seed-Script
 - Erstellt Custom Types + Documents + publiziert
 - Idempotent
+- **Am Ende gibt das Script die exakten `.env.local`-Werte aus**
+- **Nach dem Seed:** Im Prismic-Dashboard alle Dokumente über "Migration release" publizieren
+
+## 2. Konfiguration (.env.local)
+
+Die Ausgabe vom Seed-Script in `.env.local` eintragen:
+
+```bash
+CMS_ADAPTER=prismic
+PRISMIC_REPO=<dein-repo-name>
+CMS_IMAGE_DOMAINS=images.prismic.io
+```
+
+## 3. Starten
+
+```bash
+npm run dev
+# → http://localhost:3000
+```
 
 ## Besonderheiten
 
@@ -34,11 +43,12 @@ node cms-seeds/seed-prismic.mjs --repo <repo-name> --write-token <write-api-toke
 - **CDN-Bilder:** Bilder über `images.prismic.io`
 - **Predicates-API:** Abfragen über Predicates (`at`, `fulltext`, `similar`) statt SQL/GROQ
 - **Ref-basiert:** Jede API-Abfrage braucht eine `ref` (Master-Ref für published Content)
+- **Migration Release:** Nach dem Seed müssen Dokumente im Dashboard über "Migration release" publiziert werden — der CDN liefert nur Published Content
 
 ## Troubleshooting
 
 | Problem | Lösung |
 |---|---|
-| Leere Ergebnisse | Repository-Name korrekt? Content published? |
+| Leere Ergebnisse | Repository-Name korrekt? Content published? "Migration release" gemacht? |
 | Bilder fehlen | `CMS_IMAGE_DOMAINS=images.prismic.io` gesetzt? |
 | 403 Forbidden | Access Token nötig? Unter Settings → API & Security prüfen |

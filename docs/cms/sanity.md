@@ -5,30 +5,38 @@
 ## Voraussetzungen
 
 - Sanity-Account mit Projekt
-- Project ID + Dataset Name
-- Optional: API Token für private Datasets
+- Sanity CLI installiert (`npm install -g @sanity/cli`)
+- `sanity login` ausführen (interaktiv im Browser — muss vor dem Seed-Script passieren)
 
-## Konfiguration (.env.local)
-
-```bash
-CMS_ADAPTER=sanity
-SANITY_PROJECT_ID=your-project-id
-SANITY_DATASET=production
-# SANITY_API_TOKEN=               # nur bei privaten Datasets
-# SANITY_API_VERSION=2024-01-01   # optional, Default: aktuelle Version
-CMS_IMAGE_DOMAINS=cdn.sanity.io
-```
-
-## Demo-Daten (Seed Script)
+## 1. Demo-Daten erstellen
 
 ```bash
-# Erfordert vorheriges Login: sanity login (interaktiv im Browser)
+# Vorher einmalig: sanity login
 node cms-seeds/seed-sanity.mjs --project-id <project-id> --dataset production
 ```
 
-- **Auth:** Nutzt das Sanity CLI Token (`sanity login` muss vorher ausgeführt werden)
+- Nutzt das Sanity CLI Token (kein separater API-Token nötig)
 - Erstellt Documents via Mutations API
 - Idempotent
+- **Am Ende gibt das Script die exakten `.env.local`-Werte aus**
+
+## 2. Konfiguration (.env.local)
+
+Die Ausgabe vom Seed-Script in `.env.local` eintragen:
+
+```bash
+CMS_ADAPTER=sanity
+SANITY_PROJECT_ID=<deine-project-id>
+SANITY_DATASET=production
+CMS_IMAGE_DOMAINS=cdn.sanity.io
+```
+
+## 3. Starten
+
+```bash
+npm run dev
+# → http://localhost:3000
+```
 
 ## Besonderheiten
 
@@ -36,7 +44,7 @@ node cms-seeds/seed-sanity.mjs --project-id <project-id> --dataset production
 - **Portable Text:** Body als Portable Text (Block Content) — der Adapter konvertiert zu HTML via `@portabletext/to-html`
 - **Image Pipeline:** Bilder über `cdn.sanity.io` mit On-the-fly-Transformationen (Crop, Hotspot, Resize)
 - **Echtzeit:** Sanity Listener API ermöglicht Live-Updates (nicht im Adapter genutzt)
-- **Kein `sanity login` im Script:** Der Login ist interaktiv (Browser-Auth) und muss manuell ausgeführt werden
+- **Login ist interaktiv:** `sanity login` öffnet den Browser — kann nicht automatisiert werden
 
 ## Troubleshooting
 

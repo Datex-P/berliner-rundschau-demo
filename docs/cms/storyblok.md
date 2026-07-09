@@ -5,25 +5,34 @@
 ## Voraussetzungen
 
 - Storyblok-Account mit Space
-- Access Token (Public oder Private)
+- Personal Access Token (von app.storyblok.com → My Account) für Seed-Script
 
-## Konfiguration (.env.local)
-
-```bash
-CMS_ADAPTER=storyblok
-STORYBLOK_ACCESS_TOKEN=your-token
-CMS_IMAGE_DOMAINS=a.storyblok.com
-```
-
-## Demo-Daten (Seed Script)
+## 1. Demo-Daten erstellen
 
 ```bash
 node cms-seeds/seed-storyblok.mjs --space-id <space-id> --token <personal-access-token>
 ```
 
-- **Token-Typ:** Personal Access Token von app.storyblok.com → My Account
 - Erstellt Components + Stories, publiziert automatisch
 - Idempotent
+- **Am Ende gibt das Script die exakten `.env.local`-Werte aus**
+
+## 2. Konfiguration (.env.local)
+
+Die Ausgabe vom Seed-Script in `.env.local` eintragen:
+
+```bash
+CMS_ADAPTER=storyblok
+STORYBLOK_ACCESS_TOKEN=<dein-token>
+CMS_IMAGE_DOMAINS=a.storyblok.com
+```
+
+## 3. Starten
+
+```bash
+npm run dev
+# → http://localhost:3000
+```
 
 ## Besonderheiten
 

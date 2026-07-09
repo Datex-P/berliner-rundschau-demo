@@ -8,28 +8,42 @@
   - [EXT:headless](https://extensions.typo3.org/extension/headless) — aktiviert JSON-Modus
   - [EXT:news](https://extensions.typo3.org/extension/news) — stellt News-Artikel bereit
   - [friendsoftypo3/headless_news](https://github.com/TYPO3-Headless/headless_news) — serialisiert News ins JSON-Format
-- Optional: Bearer Token für geschützte Endpoints
+- DDEV muss laufen (für Seed-Script)
 
-## Konfiguration (.env.local)
-
-```bash
-CMS_ADAPTER=typo3
-TYPO3_URL=https://cms.example.de
-# TYPO3_API_TOKEN=              # nur bei geschützten Endpoints
-# TYPO3_ARTICLE_PAGE=/news      # Slug der News-Listenseite (Default: /news)
-# TYPO3_LANG_PREFIX=/en         # bei mehrsprachigen Instanzen
-# TYPO3_FIELD_MAP={}            # Custom-Felder remappen
-CMS_IMAGE_DOMAINS=cms.example.de
-```
-
-## Demo-Daten (Seed Script)
+## 1. Demo-Daten erstellen
 
 ```bash
 bash cms-seeds/seed-typo3.sh --project-dir ~/Desktop/typo3-demo
 ```
 
 - **Kein Token nötig:** Schreibt direkt in die DDEV-MySQL-Datenbank
-- DDEV muss laufen
+- **Am Ende gibt das Script die exakten `.env.local`-Werte aus**
+
+## 2. Konfiguration (.env.local)
+
+Die Ausgabe vom Seed-Script in `.env.local` eintragen:
+
+```bash
+CMS_ADAPTER=typo3
+TYPO3_URL=https://cms.example.de
+CMS_IMAGE_DOMAINS=cms.example.de
+```
+
+Optionale Felder:
+
+```bash
+# TYPO3_API_TOKEN=              # nur bei geschützten Endpoints
+# TYPO3_ARTICLE_PAGE=/news      # Slug der News-Listenseite (Default: /news)
+# TYPO3_LANG_PREFIX=/en         # bei mehrsprachigen Instanzen
+# TYPO3_FIELD_MAP={}            # Custom-Felder remappen
+```
+
+## 3. Starten
+
+```bash
+npm run dev
+# → http://localhost:3000
+```
 
 ## Besonderheiten
 

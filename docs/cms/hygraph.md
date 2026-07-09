@@ -5,28 +5,35 @@
 ## Voraussetzungen
 
 - Hygraph-Account mit Projekt
-- Content API Endpoint (Permanent Auth Token oder Public API)
-- Optional: Management API Token für Seed-Script
+- Management API Token (Settings → API Access → Permanent Auth Tokens) mit `Mutations`-Permission für Seed-Script
 
-## Konfiguration (.env.local)
-
-```bash
-CMS_ADAPTER=hygraph
-HYGRAPH_ENDPOINT=https://api-eu-central-1.hygraph.com/v2/your-project-id/master
-# HYGRAPH_TOKEN=                  # nur bei Permanent Auth Token
-CMS_IMAGE_DOMAINS=media.graphassets.com
-```
-
-## Demo-Daten (Seed Script)
+## 1. Demo-Daten erstellen
 
 ```bash
 node cms-seeds/seed-hygraph.mjs --endpoint <content-api-endpoint> --token <management-api-token>
 ```
 
-- **Token-Typ:** Management API Token (Settings → API Access → Permanent Auth Tokens) mit `Mutations`-Permission
-- Content API Endpoint aus Settings → API Access → Content API
+- Content API Endpoint findest du unter Settings → API Access → Content API
 - Erstellt Schema + Content via GraphQL Mutations
 - Idempotent
+- **Am Ende gibt das Script die exakten `.env.local`-Werte aus**
+
+## 2. Konfiguration (.env.local)
+
+Die Ausgabe vom Seed-Script in `.env.local` eintragen:
+
+```bash
+CMS_ADAPTER=hygraph
+HYGRAPH_ENDPOINT=<dein-content-api-endpoint>
+CMS_IMAGE_DOMAINS=media.graphassets.com
+```
+
+## 3. Starten
+
+```bash
+npm run dev
+# → http://localhost:3000
+```
 
 ## Besonderheiten
 

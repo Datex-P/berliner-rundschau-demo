@@ -4,10 +4,10 @@
 
 ## Voraussetzungen
 
-- Payload-Instanz (Node.js)
-- API Key oder Bearer Token mit Lesezugriff
+- Node.js + MongoDB (oder PostgreSQL)
+- Payload-Instanz (lokal)
 
-## Setup (lokal)
+## 1. Setup (lokal)
 
 ```bash
 npx create-payload-app@latest payload-demo
@@ -18,16 +18,7 @@ npm run dev
 
 **Port-Hinweis:** Payload läuft standardmäßig auf Port 3000 — bei paralleler Nutzung mit der Berliner Rundschau den Port in `server.ts` auf z.B. 3001 ändern.
 
-## Konfiguration (.env.local)
-
-```bash
-CMS_ADAPTER=payload
-PAYLOAD_URL=http://localhost:3001
-PAYLOAD_API_KEY=your-api-key
-CMS_IMAGE_DOMAINS=localhost
-```
-
-## Demo-Daten (Seed Script)
+## 2. Demo-Daten erstellen
 
 ```bash
 node cms-seeds/seed-payload.mjs --url http://localhost:3001 --api-key <api-key>
@@ -37,6 +28,25 @@ node cms-seeds/seed-payload.mjs --url http://localhost:3001 --api-key <api-key>
 - Collections müssen VOR dem Seed in `payload.config.ts` definiert sein
 - Erstellt Einträge via REST API
 - Idempotent
+- **Am Ende gibt das Script die exakten `.env.local`-Werte aus**
+
+## 3. Konfiguration (.env.local)
+
+Die Ausgabe vom Seed-Script in `.env.local` eintragen:
+
+```bash
+CMS_ADAPTER=payload
+PAYLOAD_URL=http://localhost:3001
+PAYLOAD_API_KEY=<dein-api-key>
+CMS_IMAGE_DOMAINS=localhost
+```
+
+## 4. Starten
+
+```bash
+npm run dev
+# → http://localhost:3000
+```
 
 ## Besonderheiten
 

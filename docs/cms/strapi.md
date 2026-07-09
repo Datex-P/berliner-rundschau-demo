@@ -5,29 +5,38 @@
 ## Voraussetzungen
 
 - Strapi-Instanz (lokal oder gehostet)
-- API Token mit Lesezugriff
+- Full-Access API Token (Settings → API Tokens → Create) für Seed-Script
 
-## Konfiguration (.env.local)
-
-```bash
-CMS_ADAPTER=strapi
-STRAPI_URL=http://localhost:1337
-STRAPI_API_TOKEN=your-api-token
-CMS_IMAGE_DOMAINS=localhost
-```
-
-Bei gehosteter Instanz: `localhost` durch die Domain ersetzen.
-
-## Demo-Daten (Seed Script)
+## 1. Demo-Daten erstellen
 
 ```bash
 node cms-seeds/seed-strapi.mjs --url http://localhost:1337 --token <admin-api-token>
 ```
 
-- **Token-Typ:** Full-Access API Token (Settings → API Tokens → Create)
-- Erstellt Content-Types existieren bereits (müssen im Admin-Panel angelegt sein)
+- Content-Types müssen VOR dem Seed im Admin-Panel angelegt sein
 - Erstellt Einträge + publiziert
 - Idempotent
+- **Am Ende gibt das Script die exakten `.env.local`-Werte aus**
+
+## 2. Konfiguration (.env.local)
+
+Die Ausgabe vom Seed-Script in `.env.local` eintragen:
+
+```bash
+CMS_ADAPTER=strapi
+STRAPI_URL=http://localhost:1337
+STRAPI_API_TOKEN=<dein-api-token>
+CMS_IMAGE_DOMAINS=localhost
+```
+
+Bei gehosteter Instanz: `localhost` durch die Domain ersetzen.
+
+## 3. Starten
+
+```bash
+npm run dev
+# → http://localhost:3000
+```
 
 ## Besonderheiten
 

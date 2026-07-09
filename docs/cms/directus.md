@@ -4,10 +4,10 @@
 
 ## Voraussetzungen
 
-- Directus-Instanz (Docker empfohlen)
-- Static Admin Token oder Bearer Token
+- Docker installiert
+- Static Admin Token (wird in Docker Compose konfiguriert)
 
-## Setup (Docker)
+## 1. Setup (Docker)
 
 ```bash
 mkdir directus-demo && cd directus-demo
@@ -40,7 +40,20 @@ docker compose up -d
 # Admin-Panel: http://localhost:8055
 ```
 
-## Konfiguration (.env.local)
+## 2. Demo-Daten erstellen
+
+```bash
+node cms-seeds/seed-directus.mjs --url http://localhost:8055 --token directus-demo-static-token
+```
+
+- Erstellt Collections + Felder + Relationen + Demo-Daten via Schema API
+- Idempotent — löscht und erstellt Collections bei erneutem Lauf
+- 10 Collections: articles, categories, authors, navigation, siteConfig, breakingNews, newsticker, videos, quizzes, stockData
+- **Am Ende gibt das Script die exakten `.env.local`-Werte aus**
+
+## 3. Konfiguration (.env.local)
+
+Die Ausgabe vom Seed-Script in `.env.local` eintragen:
 
 ```bash
 CMS_ADAPTER=directus
@@ -49,16 +62,12 @@ DIRECTUS_STATIC_TOKEN=directus-demo-static-token
 CMS_IMAGE_DOMAINS=images.unsplash.com
 ```
 
-## Demo-Daten (Seed Script)
+## 4. Starten
 
 ```bash
-node cms-seeds/seed-directus.mjs --url http://localhost:8055 --token directus-demo-static-token
+npm run dev
+# → http://localhost:3000
 ```
-
-- **Token-Typ:** Static Admin Token (`ADMIN_TOKEN` in Docker Compose)
-- Erstellt Collections + Felder + Relationen + Demo-Daten via Schema API
-- Idempotent — löscht und erstellt Collections bei erneutem Lauf
-- 10 Collections: articles, categories, authors, navigation, siteConfig, breakingNews, newsticker, videos, quizzes, stockData
 
 ## Besonderheiten
 

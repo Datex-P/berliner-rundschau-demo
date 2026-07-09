@@ -83,7 +83,7 @@ Das Projekt unterstützt **11 Headless CMS** + einen Mock-Fallback. Alle 11 Adap
 
 #### Mit eigenem CMS testen
 
-Jeder der 11 Adapter lässt sich lokal in drei Schritten anbinden — kein Redeploy nötig:
+Jeder der 11 Adapter lässt sich lokal in vier Schritten anbinden — kein Redeploy nötig:
 
 ```bash
 # 1. Repo klonen und starten (läuft sofort mit Mock-Daten)
@@ -92,11 +92,14 @@ cd berliner-rundschau
 npm install
 npm run dev          # → http://localhost:3000 (Mock-Daten)
 
-# 2. .env.local anlegen und CMS-Variablen setzen
-cp .env.example .env.local
-# → .env.local editieren (siehe Beispiele unten)
+# 2. Seed-Script ausführen (erstellt Demo-Daten im CMS)
+#    → siehe CMS-Guide unten für den exakten Befehl
 
-# 3. Dev-Server neu starten — Health-Check im Terminal zeigt Status
+# 3. .env.local anlegen — das Seed-Script gibt die Werte am Ende aus
+cp .env.example .env.local
+#    → Ausgabe vom Seed-Script eintragen
+
+# 4. Dev-Server neu starten
 npm run dev
 ```
 

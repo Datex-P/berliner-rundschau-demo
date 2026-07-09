@@ -5,26 +5,9 @@
 ## Voraussetzungen
 
 - WordPress-Instanz (WordPress.com oder Self-Hosted) mit aktivierter REST API
-- Optional: App Password oder Bearer Token für geschützte Inhalte
+- Bearer Token (WP.com) oder App Password (Self-Hosted) für Schreibzugriff
 
-## Konfiguration (.env.local)
-
-```bash
-# WordPress.com
-CMS_ADAPTER=wordpress
-WORDPRESS_URL=https://example.wordpress.com
-WORDPRESS_API_BASE=https://public-api.wordpress.com/wp/v2/sites/example.wordpress.com
-CMS_IMAGE_DOMAINS=example.wordpress.com,wp.com,i0.wp.com,secure.gravatar.com
-
-# WordPress Self-Hosted
-CMS_ADAPTER=wordpress
-WORDPRESS_URL=https://example.com
-# Auth nur nötig wenn Posts nicht public:
-# WORDPRESS_USERNAME=user
-# WORDPRESS_APP_PASSWORD=xxxx-xxxx-xxxx-xxxx
-```
-
-## Demo-Daten (Seed Script)
+## 1. Demo-Daten erstellen
 
 ```bash
 # WordPress.com (OAuth2 Bearer Token)
@@ -37,6 +20,30 @@ node cms-seeds/seed-wordpress.mjs --url https://example.com --user admin --app-p
 - **WordPress.com:** Bearer Token für Schreibzugriff
 - **Self-Hosted:** Application Password (unter Users → Edit → Application Passwords)
 - Autoren = WordPress-User-Accounts, können nicht per Script erstellt werden
+- **Am Ende gibt das Script die exakten `.env.local`-Werte aus**
+
+## 2. Konfiguration (.env.local)
+
+Die Ausgabe vom Seed-Script in `.env.local` eintragen:
+
+```bash
+# WordPress.com
+CMS_ADAPTER=wordpress
+WORDPRESS_URL=https://example.wordpress.com
+WORDPRESS_API_BASE=https://public-api.wordpress.com/wp/v2/sites/example.wordpress.com
+CMS_IMAGE_DOMAINS=example.wordpress.com,wp.com,i0.wp.com,secure.gravatar.com
+
+# WordPress Self-Hosted
+CMS_ADAPTER=wordpress
+WORDPRESS_URL=https://example.com
+```
+
+## 3. Starten
+
+```bash
+npm run dev
+# → http://localhost:3000
+```
 
 ## Besonderheiten
 
