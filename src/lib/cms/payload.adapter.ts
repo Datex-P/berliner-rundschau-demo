@@ -180,9 +180,13 @@ function mapDoc(doc: Record<string, unknown>): unknown {
   const bodyField = doc[mf("body")];
   const bodyHtml = sanitizeRichText(lexicalToHtml(bodyField));
 
-  // Image — resolved relation object with url, alt, width, height
+  // Image — resolved upload relation, or fallback to imageUrl text field
   const imgField = doc[mf("image")] as Record<string, unknown> | null;
-  const imgUrl = imgField?.url ? resolveUrl(String(imgField.url)) : null;
+  const imgUrl = imgField?.url
+    ? resolveUrl(String(imgField.url))
+    : doc.imageUrl
+      ? String(doc.imageUrl)
+      : null;
 
   // Category — resolved relation
   const cat = doc[mf("category")] as Record<string, unknown> | null;
@@ -190,7 +194,11 @@ function mapDoc(doc: Record<string, unknown>): unknown {
   // Author — resolved relation
   const auth = doc[mf("author")] as Record<string, unknown> | null;
   const authAvatar = auth?.avatar as Record<string, unknown> | null;
-  const avatarUrl = authAvatar?.url ? resolveUrl(String(authAvatar.url)) : "";
+  const avatarUrl = authAvatar?.url
+    ? resolveUrl(String(authAvatar.url))
+    : auth?.avatarUrl
+      ? String(auth.avatarUrl)
+      : "";
 
   // Tags — may be string[] or object[] with .name / .tag
   const rawTags = doc[mf("tags")];
@@ -264,7 +272,11 @@ function mapCategory(doc: Record<string, unknown>): unknown {
 /** Map a raw Payload author document. */
 function mapAuthor(doc: Record<string, unknown>): unknown {
   const avatarField = doc.avatar as Record<string, unknown> | null;
-  const avatarUrl = avatarField?.url ? resolveUrl(String(avatarField.url)) : "";
+  const avatarUrl = avatarField?.url
+    ? resolveUrl(String(avatarField.url))
+    : doc.avatarUrl
+      ? String(doc.avatarUrl)
+      : "";
 
   return {
     id: String(doc.id ?? ""),
@@ -366,12 +378,21 @@ const payloadAdapter: CmsAdapter = {
     );
     return docs.map((d) => {
       const doc = d as Record<string, unknown>;
+      const headlineText = String(doc.headline ?? "");
+      const slug = headlineText
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "");
       return {
         id: String(doc.id ?? ""),
-        headline: String(doc.headline ?? ""),
-        text: String(doc.text ?? ""),
-        timestamp: String(doc.createdAt ?? ""),
-        url: String(doc.url ?? ""),
+        type: "TimelineTeaser",
+        topic: String(doc.topic ?? ""),
+        headline: {
+          label: headlineText,
+          href: `/artikel/${slug}`,
+        },
+        publicationDate: String(doc.createdAt ?? ""),
+        isPremium: doc.isPremium === true,
       };
     });
   },
@@ -383,9 +404,16 @@ const payloadAdapter: CmsAdapter = {
       return {
         id: String(doc.id ?? ""),
         title: String(doc.title ?? ""),
-        url: String(doc.url ?? ""),
-        thumbnail: String(doc.thumbnail ?? ""),
-        duration: Number(doc.duration ?? 0),
+        sources: [
+          {
+            src: String(doc.url ?? ""),
+            extension: "mp4",
+          },
+        ],
+        poster: String(doc.thumbnail ?? ""),
+        durationSeconds: Number(doc.duration ?? 0),
+        caption: String(doc.caption ?? ""),
+        category: String(doc.category ?? ""),
         publishedAt: String(doc.createdAt ?? ""),
       };
     });
@@ -393,17 +421,36 @@ const payloadAdapter: CmsAdapter = {
 
   async fetchNavigation(): Promise<unknown> {
     const doc = await safeFetchFirstDoc("navigation");
-    if (!doc) return { items: [] };
+    if (!doc) return { primaryMenu: [], footerMenu: [], socialLinks: [] };
     const nav = doc as Record<string, unknown>;
+    const items = Array.isArray(nav.items) ? nav.items : [];
     return {
-      items: Array.isArray(nav.items) ? nav.items : [],
+      primaryMenu: items.map((item: unknown) => {
+        const i = item as Record<string, unknown>;
+        return {
+          reference: {
+            type: "SECTION",
+            href: String(i.href ?? "/"),
+            label: String(i.label ?? ""),
+            isActive: i.isActive === true,
+          },
+          commercial: false,
+        };
+      }),
+      footerMenu: Array.isArray(nav.footerMenu) ? nav.footerMenu : [],
+      socialLinks: Array.isArray(nav.socialLinks) ? nav.socialLinks : [],
     };
   },
 
   async fetchSiteConfig(): Promise<unknown> {
     const doc = await safeFetchFirstDoc("site-config");
     if (!doc) return {};
-    return doc;
+    const cfg = doc as Record<string, unknown>;
+    return {
+      title: String(cfg.siteName ?? ""),
+      description: String(cfg.siteDescription ?? ""),
+      socialLinks: Array.isArray(cfg.socialLinks) ? cfg.socialLinks : [],
+    };
   },
 
   async fetchBreakingNews(): Promise<unknown[]> {
@@ -416,10 +463,9 @@ const payloadAdapter: CmsAdapter = {
       return {
         id: String(doc.id ?? ""),
         headline: String(doc.headline ?? ""),
-        text: String(doc.text ?? ""),
-        url: String(doc.url ?? ""),
+        href: String(doc.url ?? ""),
         severity: String(doc.severity ?? "normal"),
-        timestamp: String(doc.createdAt ?? ""),
+        publishedAt: String(doc.createdAt ?? ""),
       };
     });
   },
@@ -430,8 +476,12 @@ const payloadAdapter: CmsAdapter = {
     const quiz = doc as Record<string, unknown>;
     return {
       id: String(quiz.id ?? ""),
+      date: String(quiz.date ?? new Date().toISOString().slice(0, 10)),
       title: String(quiz.title ?? ""),
       questions: Array.isArray(quiz.questions) ? quiz.questions : [],
+      streakRewards: Array.isArray(quiz.streakRewards)
+        ? quiz.streakRewards
+        : [],
     };
   },
 
@@ -440,7 +490,9 @@ const payloadAdapter: CmsAdapter = {
     if (!doc) return null;
     const stock = doc as Record<string, unknown>;
     return {
-      stocks: Array.isArray(stock.stocks) ? stock.stocks : [],
+      indices: Array.isArray(stock.indices) ? stock.indices : [],
+      watchlist: Array.isArray(stock.watchlist) ? stock.watchlist : [],
+      chartData: stock.chartData ?? {},
       updatedAt: String(stock.updatedAt ?? ""),
     };
   },

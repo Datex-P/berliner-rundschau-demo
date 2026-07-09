@@ -57,12 +57,12 @@ const ARTICLE_FIELDS = `
   ${mapField(fieldMap, "headline")}
   slug
   ${mapField(fieldMap, "teaser")}
-  ${mapField(fieldMap, "body")} { html }
+  ${mapField(fieldMap, "body")}
   createdAt
   updatedAt
-  ${mapField(fieldMap, "image")} { url altText width height }
+  ${mapField(fieldMap, "image")}
   ${mapField(fieldMap, "category")} { id name slug }
-  ${mapField(fieldMap, "author")} { id name slug avatar { url } }
+  ${mapField(fieldMap, "author")} { id name slug avatar }
   ${mapField(fieldMap, "tags")}
   ${mapField(fieldMap, "readingTimeMinutes")}
   ${mapField(fieldMap, "isPremium")}
@@ -81,22 +81,27 @@ function mapRecord(
   record: Record<string, unknown>,
   fm: Record<string, string>,
 ): unknown {
-  const body = record[mapField(fm, "body")] as Record<string, unknown> | null;
-  const bodyHtml = body?.html ? sanitizeRichText(String(body.html)) : "";
+  const bodyVal = record[mapField(fm, "body")];
+  const bodyHtml =
+    typeof bodyVal === "string"
+      ? sanitizeRichText(bodyVal)
+      : (bodyVal as Record<string, unknown> | null)?.html
+        ? sanitizeRichText(String((bodyVal as Record<string, unknown>).html))
+        : "";
 
-  const img = record[mapField(fm, "image")] as Record<
-    string,
-    unknown
-  > | null;
+  const img = record[mapField(fm, "image")] as Record<string, unknown> | null;
   const cat = record[mapField(fm, "category")] as Record<
     string,
     unknown
   > | null;
-  const auth = record[mapField(fm, "author")] as Record<
-    string,
-    unknown
-  > | null;
-  const authAvatar = auth?.avatar as Record<string, unknown> | null;
+  const auth = record[mapField(fm, "author")] as Record<string, unknown> | null;
+  const authAvatarVal = auth?.avatar;
+  const authAvatarUrl =
+    typeof authAvatarVal === "string"
+      ? authAvatarVal
+      : (authAvatarVal as Record<string, unknown> | null)?.url
+        ? String((authAvatarVal as Record<string, unknown>).url)
+        : "";
 
   return {
     id: String(record.id ?? ""),
@@ -124,15 +129,13 @@ function mapRecord(
           id: String(auth.id ?? ""),
           name: String(auth.name ?? ""),
           slug: String(auth.slug ?? ""),
-          avatar: authAvatar ? String(authAvatar.url ?? "") : "",
+          avatar: authAvatarUrl,
         }
       : { id: "", name: "", slug: "", avatar: "" },
     tags: Array.isArray(record[mapField(fm, "tags")])
       ? record[mapField(fm, "tags")]
       : [],
-    readingTimeMinutes: Number(
-      record[mapField(fm, "readingTimeMinutes")] ?? 0,
-    ),
+    readingTimeMinutes: Number(record[mapField(fm, "readingTimeMinutes")] ?? 0),
     commentCount: 0,
     isPremium: record[mapField(fm, "isPremium")] === true,
     paywall: String(record[mapField(fm, "paywall")] ?? "free"),
@@ -160,12 +163,18 @@ function mapCategoryRecord(record: Record<string, unknown>): unknown {
 }
 
 function mapAuthorRecord(record: Record<string, unknown>): unknown {
-  const avatar = record.avatar as Record<string, unknown> | null;
+  const avatarVal = record.avatar;
+  const avatarUrl =
+    typeof avatarVal === "string"
+      ? avatarVal
+      : (avatarVal as Record<string, unknown> | null)?.url
+        ? String((avatarVal as Record<string, unknown>).url)
+        : "";
   return {
     id: String(record.id ?? ""),
     name: String(record.name ?? ""),
     slug: String(record.slug ?? ""),
-    avatar: avatar ? String(avatar.url ?? "") : "",
+    avatar: avatarUrl,
     bio: String(record.bio ?? ""),
     role: String(record.role ?? ""),
     socialLinks: {},
@@ -201,7 +210,8 @@ const hygraphAdapter: CmsAdapter = {
       items.push(
         ...batch.map((r) => mapRecord(r as Record<string, unknown>, fieldMap)),
       );
-      const conn = result[connectionName] as Record<string, unknown> | undefined;
+      const conn = result[connectionName] as
+        Record<string, unknown> | undefined;
       const agg = conn?.aggregate as Record<string, unknown> | undefined;
       const total = agg ? Number(agg.count ?? 0) : 0;
       skip += first;
@@ -318,7 +328,8 @@ const hygraphAdapter: CmsAdapter = {
           slug: String((r as Record<string, unknown>).slug ?? ""),
         })),
       );
-      const conn = result[connectionName] as Record<string, unknown> | undefined;
+      const conn = result[connectionName] as
+        Record<string, unknown> | undefined;
       const agg = conn?.aggregate as Record<string, unknown> | undefined;
       const total = agg ? Number(agg.count ?? 0) : 0;
       skip += first;
@@ -340,9 +351,7 @@ const hygraphAdapter: CmsAdapter = {
       const result = await gqlQuery<Record<string, unknown>>(q, { stage });
       const batch = result.categories;
       if (!Array.isArray(batch)) return [];
-      return batch.map((r) =>
-        mapCategoryRecord(r as Record<string, unknown>),
-      );
+      return batch.map((r) => mapCategoryRecord(r as Record<string, unknown>));
     } catch {
       return [];
     }
@@ -373,16 +382,14 @@ const hygraphAdapter: CmsAdapter = {
       const q = `
         query AllAuthors($stage: Stage!) {
           authors(stage: $stage, first: 100) {
-            id name slug bio role avatar { url }
+            id name slug bio role avatar
           }
         }
       `;
       const result = await gqlQuery<Record<string, unknown>>(q, { stage });
       const batch = result.authors;
       if (!Array.isArray(batch)) return [];
-      return batch.map((r) =>
-        mapAuthorRecord(r as Record<string, unknown>),
-      );
+      return batch.map((r) => mapAuthorRecord(r as Record<string, unknown>));
     } catch {
       return [];
     }
@@ -393,7 +400,7 @@ const hygraphAdapter: CmsAdapter = {
       const q = `
         query AuthorBySlug($slug: String!, $stage: Stage!) {
           author(where: { slug: $slug }, stage: $stage) {
-            id name slug bio role avatar { url }
+            id name slug bio role avatar
           }
         }
       `;
@@ -514,7 +521,7 @@ const hygraphAdapter: CmsAdapter = {
     try {
       const q = `
         query Navigation($stage: Stage!) {
-          navigation(where: { id: "singleton" }, stage: $stage) {
+          navigation(where: { slug: "singleton" }, stage: $stage) {
             primaryMenuJson
             footerMenuJson
             socialLinksJson
@@ -523,17 +530,22 @@ const hygraphAdapter: CmsAdapter = {
       `;
       const result = await gqlQuery<Record<string, unknown>>(q, { stage });
       const nav = result.navigation as Record<string, unknown> | null;
-      if (!nav)
-        return { primaryMenu: [], footerMenu: [], socialLinks: [] };
+      if (!nav) return { primaryMenu: [], footerMenu: [], socialLinks: [] };
       return {
         primaryMenu: nav.primaryMenuJson
-          ? JSON.parse(String(nav.primaryMenuJson))
+          ? typeof nav.primaryMenuJson === "string"
+            ? JSON.parse(nav.primaryMenuJson)
+            : nav.primaryMenuJson
           : [],
         footerMenu: nav.footerMenuJson
-          ? JSON.parse(String(nav.footerMenuJson))
+          ? typeof nav.footerMenuJson === "string"
+            ? JSON.parse(nav.footerMenuJson)
+            : nav.footerMenuJson
           : [],
         socialLinks: nav.socialLinksJson
-          ? JSON.parse(String(nav.socialLinksJson))
+          ? typeof nav.socialLinksJson === "string"
+            ? JSON.parse(nav.socialLinksJson)
+            : nav.socialLinksJson
           : [],
       };
     } catch {
@@ -545,7 +557,7 @@ const hygraphAdapter: CmsAdapter = {
     try {
       const q = `
         query SiteConfig($stage: Stage!) {
-          siteConfig(where: { id: "singleton" }, stage: $stage) {
+          siteConfig(where: { slug: "singleton" }, stage: $stage) {
             title description url language tags
             socialLinksJson
             analyticsGtmId
@@ -572,7 +584,9 @@ const hygraphAdapter: CmsAdapter = {
         language: String(cfg.language ?? "de"),
         tags: Array.isArray(cfg.tags) ? cfg.tags : [],
         socialLinks: cfg.socialLinksJson
-          ? JSON.parse(String(cfg.socialLinksJson))
+          ? typeof cfg.socialLinksJson === "string"
+            ? JSON.parse(cfg.socialLinksJson)
+            : cfg.socialLinksJson
           : [],
         analytics: { gtmId: String(cfg.analyticsGtmId ?? "") },
       };
@@ -621,7 +635,7 @@ const hygraphAdapter: CmsAdapter = {
     try {
       const q = `
         query Quiz($stage: Stage!) {
-          quiz(where: { id: "singleton" }, stage: $stage) {
+          quiz(where: { slug: "singleton" }, stage: $stage) {
             date title questionsJson streakRewardsJson
           }
         }
@@ -638,11 +652,15 @@ const hygraphAdapter: CmsAdapter = {
           date: String(quiz.date ?? ""),
           title: String(quiz.title ?? ""),
           questions: quiz.questionsJson
-            ? JSON.parse(String(quiz.questionsJson))
+            ? typeof quiz.questionsJson === "string"
+              ? JSON.parse(quiz.questionsJson)
+              : quiz.questionsJson
             : [],
         },
         streakRewards: quiz.streakRewardsJson
-          ? JSON.parse(String(quiz.streakRewardsJson))
+          ? typeof quiz.streakRewardsJson === "string"
+            ? JSON.parse(quiz.streakRewardsJson)
+            : quiz.streakRewardsJson
           : [],
       };
     } catch {
@@ -657,7 +675,7 @@ const hygraphAdapter: CmsAdapter = {
     try {
       const q = `
         query StockData($stage: Stage!) {
-          stockData(where: { id: "singleton" }, stage: $stage) {
+          stockData(where: { slug: "singleton" }, stage: $stage) {
             indicesJson watchlistJson chartDataJson
           }
         }
@@ -667,13 +685,19 @@ const hygraphAdapter: CmsAdapter = {
       if (!stock) return { indices: [], watchlist: [], chartData: {} };
       return {
         indices: stock.indicesJson
-          ? JSON.parse(String(stock.indicesJson))
+          ? typeof stock.indicesJson === "string"
+            ? JSON.parse(stock.indicesJson)
+            : stock.indicesJson
           : [],
         watchlist: stock.watchlistJson
-          ? JSON.parse(String(stock.watchlistJson))
+          ? typeof stock.watchlistJson === "string"
+            ? JSON.parse(stock.watchlistJson)
+            : stock.watchlistJson
           : [],
         chartData: stock.chartDataJson
-          ? JSON.parse(String(stock.chartDataJson))
+          ? typeof stock.chartDataJson === "string"
+            ? JSON.parse(stock.chartDataJson)
+            : stock.chartDataJson
           : {},
       };
     } catch {

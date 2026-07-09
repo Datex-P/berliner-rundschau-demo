@@ -14,7 +14,10 @@ const fieldMap = parseFieldMap(process.env.DATOCMS_FIELD_MAP);
 
 // --- Query helper ---
 
-async function query<T>(q: string, variables?: Record<string, unknown>): Promise<T> {
+async function query<T>(
+  q: string,
+  variables?: Record<string, unknown>,
+): Promise<T> {
   return executeQuery(q, { token, environment, variables });
 }
 
@@ -40,13 +43,18 @@ function mapArticleRecord(record: Record<string, unknown>): unknown {
   const bodyHtml = renderStructuredText(bodyField);
 
   const img = record[mapField(fm, "image")] as Record<string, unknown> | null;
-  const cat = record[mapField(fm, "category")] as Record<string, unknown> | null;
+  const cat = record[mapField(fm, "category")] as Record<
+    string,
+    unknown
+  > | null;
   const auth = record[mapField(fm, "author")] as Record<string, unknown> | null;
   const avatar = auth ? (auth.avatar as Record<string, unknown> | null) : null;
 
   return {
     id: String(record.id ?? ""),
-    headline: String(record[mapField(fm, "headline")] ?? record[mapField(fm, "title")] ?? ""),
+    headline: String(
+      record[mapField(fm, "headline")] ?? record[mapField(fm, "title")] ?? "",
+    ),
     slug: String(record[mapField(fm, "slug")] ?? ""),
     teaser: String(record[mapField(fm, "teaser")] ?? ""),
     body: bodyHtml,
@@ -59,17 +67,33 @@ function mapArticleRecord(record: Record<string, unknown>): unknown {
       img ? Number(img.height ?? 0) : undefined,
     ),
     category: cat
-      ? { id: String(cat.id ?? ""), name: String(cat.name ?? ""), slug: String(cat.slug ?? "") }
+      ? {
+          id: String(cat.id ?? ""),
+          name: String(cat.name ?? ""),
+          slug: String(cat.slug ?? ""),
+        }
       : { id: "", name: "", slug: "" },
     author: auth
       ? {
           id: String(auth.id ?? ""),
           name: String(auth.name ?? ""),
           slug: String(auth.slug ?? ""),
-          avatar: avatar ? String((avatar as Record<string, unknown>).url ?? "") : "",
+          avatar: avatar
+            ? String((avatar as Record<string, unknown>).url ?? "")
+            : "",
         }
       : { id: "", name: "", slug: "", avatar: "" },
-    tags: Array.isArray(record[mapField(fm, "tags")]) ? record[mapField(fm, "tags")] : [],
+    tags: (() => {
+      const t = record[mapField(fm, "tags")];
+      if (Array.isArray(t)) return t as string[];
+      if (
+        t &&
+        typeof t === "object" &&
+        Array.isArray((t as Record<string, unknown>).list)
+      )
+        return (t as Record<string, unknown>).list as string[];
+      return [];
+    })(),
     readingTimeMinutes: Number(record[mapField(fm, "readingTimeMinutes")] ?? 0),
     commentCount: 0,
     isPremium: record[mapField(fm, "isPremium")] === true,
@@ -173,7 +197,9 @@ const adapter: CmsAdapter = {
       const result = await query<Record<string, unknown>>(q, { first, skip });
       const batch = result[allQuery];
       if (!Array.isArray(batch) || batch.length === 0) break;
-      items.push(...batch.map((r) => mapArticleRecord(r as Record<string, unknown>)));
+      items.push(
+        ...batch.map((r) => mapArticleRecord(r as Record<string, unknown>)),
+      );
       const meta = result[metaQuery] as Record<string, unknown> | undefined;
       const total = meta ? Number(meta.count ?? 0) : 0;
       skip += first;
@@ -258,7 +284,11 @@ const adapter: CmsAdapter = {
       const result = await query<Record<string, unknown>>(q, { first, skip });
       const batch = result[allQuery];
       if (!Array.isArray(batch) || batch.length === 0) break;
-      slugs.push(...batch.map((r) => ({ slug: String((r as Record<string, unknown>).slug ?? "") })));
+      slugs.push(
+        ...batch.map((r) => ({
+          slug: String((r as Record<string, unknown>).slug ?? ""),
+        })),
+      );
       const meta = result[metaQuery] as Record<string, unknown> | undefined;
       const total = meta ? Number(meta.count ?? 0) : 0;
       skip += first;
@@ -351,7 +381,7 @@ const adapter: CmsAdapter = {
       const q = `
         query AllNewstickers {
           allNewstickers(first: 20, orderBy: _createdAt_DESC) {
-            id type topic headline slug _createdAt isPremium
+            id tickerType topic headline slug _createdAt isPremium
           }
         }
       `;
@@ -362,7 +392,7 @@ const adapter: CmsAdapter = {
         const rec = r as Record<string, unknown>;
         return {
           id: String(rec.id ?? ""),
-          type: String(rec.type ?? ""),
+          type: String(rec.tickerType ?? ""),
           topic: String(rec.topic ?? ""),
           headline: {
             label: String(rec.headline ?? ""),
@@ -395,7 +425,14 @@ const adapter: CmsAdapter = {
         return {
           id: String(rec.id ?? ""),
           title: String(rec.title ?? ""),
-          sources: videoUrl ? [{ src: videoUrl, extension: videoUrl.endsWith(".m3u8") ? "m3u8" : "mp4" }] : [],
+          sources: videoUrl
+            ? [
+                {
+                  src: videoUrl,
+                  extension: videoUrl.endsWith(".m3u8") ? "m3u8" : "mp4",
+                },
+              ]
+            : [],
           poster: String(rec.poster ?? ""),
           durationSeconds: Number(rec.durationSeconds ?? 0),
           caption: String(rec.caption ?? ""),
@@ -422,10 +459,29 @@ const adapter: CmsAdapter = {
       const result = await query<Record<string, unknown>>(q);
       const nav = result.navigation as Record<string, unknown> | null;
       if (!nav) return { primaryMenu: [], footerMenu: [], socialLinks: [] };
+      const wrapMenuItems = (items: unknown[]): unknown[] =>
+        items.map((item) => {
+          const i = item as Record<string, unknown>;
+          // Already wrapped (e.g. from another CMS)
+          if (i.reference) return i;
+          return {
+            reference: {
+              type: "SECTION",
+              href: String(i.href ?? ""),
+              label: String(i.label ?? ""),
+            },
+          };
+        });
       return {
-        primaryMenu: nav.primaryMenuJson ? JSON.parse(String(nav.primaryMenuJson)) : [],
-        footerMenu: nav.footerMenuJson ? JSON.parse(String(nav.footerMenuJson)) : [],
-        socialLinks: nav.socialLinksJson ? JSON.parse(String(nav.socialLinksJson)) : [],
+        primaryMenu: nav.primaryMenuJson
+          ? wrapMenuItems(JSON.parse(String(nav.primaryMenuJson)))
+          : [],
+        footerMenu: nav.footerMenuJson
+          ? wrapMenuItems(JSON.parse(String(nav.footerMenuJson)))
+          : [],
+        socialLinks: nav.socialLinksJson
+          ? JSON.parse(String(nav.socialLinksJson))
+          : [],
       };
     } catch {
       return { primaryMenu: [], footerMenu: [], socialLinks: [] };
@@ -446,19 +502,47 @@ const adapter: CmsAdapter = {
       const result = await query<Record<string, unknown>>(q);
       const cfg = result.siteConfig as Record<string, unknown> | null;
       if (!cfg) {
-        return { title: "", description: "", url: "", language: "de", tags: [], socialLinks: [], analytics: { gtmId: "" } };
+        return {
+          title: "",
+          description: "",
+          url: "",
+          language: "de",
+          tags: [],
+          socialLinks: [],
+          analytics: { gtmId: "" },
+        };
       }
       return {
         title: String(cfg.title ?? ""),
         description: String(cfg.description ?? ""),
         url: String(cfg.url ?? ""),
         language: String(cfg.language ?? "de"),
-        tags: Array.isArray(cfg.tags) ? cfg.tags : [],
-        socialLinks: cfg.socialLinksJson ? JSON.parse(String(cfg.socialLinksJson)) : [],
+        tags: (() => {
+          const t = cfg.tags;
+          if (Array.isArray(t)) return t as string[];
+          if (
+            t &&
+            typeof t === "object" &&
+            Array.isArray((t as Record<string, unknown>).list)
+          )
+            return (t as Record<string, unknown>).list as string[];
+          return [];
+        })(),
+        socialLinks: cfg.socialLinksJson
+          ? JSON.parse(String(cfg.socialLinksJson))
+          : [],
         analytics: { gtmId: String(cfg.analyticsGtmId ?? "") },
       };
     } catch {
-      return { title: "", description: "", url: "", language: "de", tags: [], socialLinks: [], analytics: { gtmId: "" } };
+      return {
+        title: "",
+        description: "",
+        url: "",
+        language: "de",
+        tags: [],
+        socialLinks: [],
+        analytics: { gtmId: "" },
+      };
     }
   },
 
@@ -501,17 +585,28 @@ const adapter: CmsAdapter = {
       `;
       const result = await query<Record<string, unknown>>(q);
       const quiz = result.quiz as Record<string, unknown> | null;
-      if (!quiz) return { dailyQuiz: { date: "", title: "", questions: [] }, streakRewards: [] };
+      if (!quiz)
+        return {
+          dailyQuiz: { date: "", title: "", questions: [] },
+          streakRewards: [],
+        };
       return {
         dailyQuiz: {
           date: String(quiz.date ?? ""),
           title: String(quiz.title ?? ""),
-          questions: quiz.questionsJson ? JSON.parse(String(quiz.questionsJson)) : [],
+          questions: quiz.questionsJson
+            ? JSON.parse(String(quiz.questionsJson))
+            : [],
         },
-        streakRewards: quiz.streakRewardsJson ? JSON.parse(String(quiz.streakRewardsJson)) : [],
+        streakRewards: quiz.streakRewardsJson
+          ? JSON.parse(String(quiz.streakRewardsJson))
+          : [],
       };
     } catch {
-      return { dailyQuiz: { date: "", title: "", questions: [] }, streakRewards: [] };
+      return {
+        dailyQuiz: { date: "", title: "", questions: [] },
+        streakRewards: [],
+      };
     }
   },
 
@@ -519,18 +614,22 @@ const adapter: CmsAdapter = {
     try {
       const q = `
         query StockData {
-          stockData {
+          stock {
             indicesJson watchlistJson chartDataJson
           }
         }
       `;
       const result = await query<Record<string, unknown>>(q);
-      const stock = result.stockData as Record<string, unknown> | null;
+      const stock = result.stock as Record<string, unknown> | null;
       if (!stock) return { indices: [], watchlist: [], chartData: {} };
       return {
         indices: stock.indicesJson ? JSON.parse(String(stock.indicesJson)) : [],
-        watchlist: stock.watchlistJson ? JSON.parse(String(stock.watchlistJson)) : [],
-        chartData: stock.chartDataJson ? JSON.parse(String(stock.chartDataJson)) : {},
+        watchlist: stock.watchlistJson
+          ? JSON.parse(String(stock.watchlistJson))
+          : [],
+        chartData: stock.chartDataJson
+          ? JSON.parse(String(stock.chartDataJson))
+          : {},
       };
     } catch {
       return { indices: [], watchlist: [], chartData: {} };
