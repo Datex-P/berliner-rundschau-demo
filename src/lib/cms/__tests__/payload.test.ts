@@ -554,9 +554,10 @@ describe("Payload CMS Adapter", () => {
 
       const ticker = result[0] as Record<string, unknown>;
       expect(ticker.id).toBe("tick-1");
-      expect(ticker.headline).toBe("Eilmeldung");
-      expect(ticker.text).toBe("Breaking text");
-      expect(ticker.url).toBe("https://example.com/news");
+      const headline = ticker.headline as Record<string, unknown>;
+      expect(headline.label).toBe("Eilmeldung");
+      expect(ticker.publicationDate).toBe("2026-01-15T10:00:00Z");
+      expect(ticker.type).toBe("TimelineTeaser");
     });
   });
 
@@ -680,8 +681,8 @@ describe("Payload CMS Adapter", () => {
     it("returns items from the navigation document", async () => {
       const navDoc = {
         items: [
-          { label: "Home", url: "/" },
-          { label: "Politik", url: "/politik" },
+          { label: "Home", href: "/", isActive: true },
+          { label: "Politik", href: "/politik" },
         ],
       };
       mockSafeFetch.mockReturnValue(mockJsonResponse({ docs: [navDoc] }));
@@ -690,18 +691,19 @@ describe("Payload CMS Adapter", () => {
         string,
         unknown
       >;
-      const items = nav.items as unknown[];
-      expect(items).toHaveLength(2);
+      const menu = nav.primaryMenu as unknown[];
+      expect(menu).toHaveLength(2);
     });
 
-    it("returns empty items when no navigation document exists", async () => {
+    it("returns empty menus when no navigation document exists", async () => {
       mockSafeFetch.mockReturnValue(mockJsonResponse({ docs: [] }));
 
       const nav = (await payloadAdapter.fetchNavigation()) as Record<
         string,
         unknown
       >;
-      expect(nav.items).toEqual([]);
+      expect(nav.primaryMenu).toEqual([]);
+      expect(nav.footerMenu).toEqual([]);
     });
   });
 

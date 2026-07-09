@@ -44,14 +44,11 @@ describe("SafeImage", () => {
     expect(img).toHaveAttribute("src", "/images/hero.jpg");
   });
 
-  it("setzt Standard-sizes-Attribut fuer responsive Layouts", () => {
+  it("setzt kein Standard-sizes-Attribut wenn nicht uebergeben", () => {
     render(<SafeImage {...defaultProps} />);
 
     const img = screen.getByRole("img", { name: "Berliner Fernsehturm" });
-    expect(img).toHaveAttribute(
-      "sizes",
-      "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw",
-    );
+    expect(img).not.toHaveAttribute("sizes");
   });
 
   it("akzeptiert benutzerdefinierte sizes", () => {

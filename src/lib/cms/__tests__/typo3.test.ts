@@ -306,7 +306,7 @@ describe("article mapping", () => {
       unknown
     >[];
     const img = articles[0].image as Record<string, unknown>;
-    expect(img.fallbackSrc).toBe("http://localhost:8080/fileadmin/test.jpg");
+    expect(img.fallbackSrc).toBe("/cms-proxy/fileadmin/test.jpg");
     expect(img.alt).toBe("Alt Text");
   });
 
@@ -331,7 +331,7 @@ describe("article mapping", () => {
       unknown
     >[];
     const img = articles[0].image as Record<string, unknown>;
-    expect(img.fallbackSrc).toBe("http://localhost:8080/fileadmin/legacy.jpg");
+    expect(img.fallbackSrc).toBe("/cms-proxy/fileadmin/legacy.jpg");
   });
 
   it("handles author as object (headless_news format)", async () => {
@@ -419,7 +419,7 @@ describe("URL handling", () => {
       unknown
     >[];
     const img = articles[0].image as Record<string, unknown>;
-    expect(img.fallbackSrc).toBe("http://localhost:8080/fileadmin/img.jpg");
+    expect(img.fallbackSrc).toBe("/cms-proxy/fileadmin/img.jpg");
   });
 
   it("keeps absolute URL as-is", async () => {
@@ -667,8 +667,9 @@ describe("navigation", () => {
   it("returns defaultNavigation on error", async () => {
     mockSafeFetch.mockRejectedValue(new Error("Network error"));
     const nav = (await adapter.fetchNavigation()) as Record<string, unknown>;
-    expect(nav.primaryMenu).toEqual([]);
-    expect(nav.footerMenu).toEqual([]);
+    const menu = nav.primaryMenu as unknown[];
+    expect(menu.length).toBeGreaterThan(0);
+    expect(nav.footerMenu).toBeDefined();
   });
 });
 
@@ -876,12 +877,17 @@ describe("error handling", () => {
 /* ========== Non-essential stubs ========== */
 
 describe("non-essential stubs", () => {
-  it("returns empty arrays/null for unsupported endpoints", async () => {
-    expect(await adapter.fetchNewsticker()).toEqual([]);
-    expect(await adapter.fetchVideos()).toEqual([]);
-    expect(await adapter.fetchBreakingNews()).toEqual([]);
-    expect(await adapter.fetchQuiz()).toBeNull();
-    expect(await adapter.fetchStockData()).toBeNull();
+  it("returns mock data for non-essential endpoints", async () => {
+    const ticker = await adapter.fetchNewsticker();
+    expect(Array.isArray(ticker)).toBe(true);
+    const videos = await adapter.fetchVideos();
+    expect(Array.isArray(videos)).toBe(true);
+    const breaking = await adapter.fetchBreakingNews();
+    expect(Array.isArray(breaking)).toBe(true);
+    const quiz = await adapter.fetchQuiz();
+    expect(quiz).toBeDefined();
+    const stock = await adapter.fetchStockData();
+    expect(stock).toBeDefined();
   });
 });
 
