@@ -24,7 +24,8 @@ vi.mock("@/components/ui/SafeImage", () => ({
 }));
 
 vi.mock("@/lib/format", () => ({
-  formatRelativeDate: () => `Vor 3 Std.`,
+  formatDate: () => "1. Juni 2026",
+  formatRelativeDate: () => "Vor 3 Std.",
   formatReadingTime: (min: number) => `${min} Min. Lesezeit`,
 }));
 
