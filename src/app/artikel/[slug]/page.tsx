@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import SafeImage from "@/components/ui/SafeImage";
+import Image from "next/image";
 import SanitizedHtml from "@/components/ui/SanitizedHtml";
 import BadgeGroup from "@/components/ui/BadgeGroup";
 import ArticleMeta from "@/components/ui/ArticleMeta";
@@ -125,15 +125,15 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         {/* Hero Image */}
         <figure className="mt-8">
           <div className="relative aspect-video rounded-xl overflow-hidden">
-            <SafeImage
+            <Image
               src={article.image.fallbackSrc}
               alt={article.image.alt}
               width={IMAGE_DIMENSIONS.article.width}
               height={IMAGE_DIMENSIONS.article.height}
               priority
               sizes="(max-width: 768px) 100vw, 896px"
+              quality={60}
               className="object-cover w-full h-full"
-              unavailableLabel="Bild nicht verfügbar"
             />
           </div>
           {(article.image.caption || article.image.credit) && (

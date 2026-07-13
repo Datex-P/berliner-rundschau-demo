@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import SafeImage from "@/components/ui/SafeImage";
 import BadgeGroup from "@/components/ui/BadgeGroup";
 import ArticleMeta from "@/components/ui/ArticleMeta";
@@ -10,14 +11,12 @@ interface ArticleCardProps {
   article: Article;
   headingLevel?: "h2" | "h3" | "h4";
   variant?: "default" | "hero" | "compact";
-  priority?: boolean;
 }
 
 export default function ArticleCard({
   article,
   headingLevel = "h3",
   variant = "default",
-  priority = false,
 }: ArticleCardProps) {
   const Heading = headingLevel;
   const href = routes.article(article.slug);
@@ -26,17 +25,14 @@ export default function ArticleCard({
     return (
       <article className="group relative overflow-hidden rounded-xl bg-(--color-surface) shadow-lg">
         <div className="relative aspect-[21/9] overflow-hidden">
-          <SafeImage
+          <Image
             src={article.image.fallbackSrc}
             alt={article.image.alt}
-            width={IMAGE_DIMENSIONS.hero.width}
-            height={IMAGE_DIMENSIONS.hero.height}
             fill
-            loading="eager"
+            priority
             sizes="(max-width: 1280px) 100vw, 1280px"
-            quality={75}
+            quality={60}
             className="object-cover"
-            unavailableLabel="Bild nicht verfügbar"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-overlay)]/80 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
@@ -118,7 +114,7 @@ export default function ArticleCard({
           width={IMAGE_DIMENSIONS.card.width}
           height={IMAGE_DIMENSIONS.card.height}
           fill
-          priority={priority}
+          loading="lazy"
           sizes="(max-width: 639px) calc(100vw - 2rem), (max-width: 1023px) calc(50vw - 3rem), 350px"
           quality={60}
           className="object-cover group-hover:scale-105 transition-transform duration-300"
