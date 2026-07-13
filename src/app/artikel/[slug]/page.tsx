@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -194,13 +195,15 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
         {/* Article Body */}
         {!(article.isPremium && article.paywall === "paid") && (
-          <div className="mt-8">
-            <SanitizedHtml
-              html={article.body}
-              className="prose prose-lg max-w-none text-(--color-text) prose-headings:font-heading prose-headings:text-(--color-text) prose-a:text-(--color-link) hover:prose-a:text-(--color-link-hover) prose-blockquote:border-l-(--color-primary) prose-blockquote:text-(--color-text-secondary)"
-              as="div"
-            />
-          </div>
+          <Suspense>
+            <div className="mt-8">
+              <SanitizedHtml
+                html={article.body}
+                className="prose prose-lg max-w-none text-(--color-text) prose-headings:font-heading prose-headings:text-(--color-text) prose-a:text-(--color-link) hover:prose-a:text-(--color-link-hover) prose-blockquote:border-l-(--color-primary) prose-blockquote:text-(--color-text-secondary)"
+                as="div"
+              />
+            </div>
+          </Suspense>
         )}
 
         {/* Tags */}
