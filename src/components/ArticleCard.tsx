@@ -117,8 +117,8 @@ export default function ArticleCard({
           width={IMAGE_DIMENSIONS.card.width}
           height={IMAGE_DIMENSIONS.card.height}
           fill
-          priority={eager}
-          loading={eager ? undefined : "lazy"}
+          loading={eager ? "eager" : "lazy"}
+          fetchPriority={eager ? "high" : undefined}
           sizes="(max-width: 639px) calc(100vw - 2rem), (max-width: 1023px) calc(50vw - 3rem), 350px"
           quality={60}
           className="object-cover group-hover:scale-105 transition-transform duration-300"
