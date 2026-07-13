@@ -10,8 +10,10 @@ interface SafeImageProps {
   height: number;
   /** Responsive sizes — Default deckt gaengige Layouts ab */
   sizes?: string;
-  /** Fuer Above-the-Fold-Bilder (Hero, erster Artikel) */
+  /** Fuer Above-the-Fold-Bilder (Hero, erster Artikel) — generiert preload link */
   priority?: boolean;
+  /** Explizites loading-Verhalten ("eager" ohne preload-Overhead) */
+  loading?: "eager" | "lazy";
   className?: string;
   /** Next.js Image fill-Modus (ignoriert width/height) */
   fill?: boolean;
@@ -28,6 +30,7 @@ export default function SafeImage({
   height,
   sizes,
   priority = false,
+  loading,
   className,
   fill = false,
   quality,
@@ -60,6 +63,7 @@ export default function SafeImage({
       height={fill ? undefined : height}
       sizes={sizes}
       priority={priority}
+      loading={priority ? undefined : loading}
       fetchPriority={priority ? "high" : undefined}
       fill={fill}
       quality={quality}

@@ -32,7 +32,7 @@ export default function ArticleCard({
             width={IMAGE_DIMENSIONS.hero.width}
             height={IMAGE_DIMENSIONS.hero.height}
             fill
-            priority
+            loading="eager"
             sizes="(max-width: 1280px) 100vw, 1280px"
             quality={75}
             className="object-cover"
