@@ -90,7 +90,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         >
           Technisches Demo-Projekt — keine echte Nachrichtenseite.{" "}
           <a
-            href="https://github.com/Datex-P/berliner-rundschau-demo"
+            href="https://github.com/Datex-P/berliner-rundschau"
             className="underline hover:no-underline"
             target="_blank"
             rel="noopener noreferrer"
