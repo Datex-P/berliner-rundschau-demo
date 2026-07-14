@@ -57,7 +57,7 @@ export default function ImpressumPage() {
         <p>
           Der vollständige Quellcode ist öffentlich verfügbar auf{" "}
           <a
-            href="https://github.com/Datex-P/berliner-rundschau"
+            href="https://github.com/Datex-P/berliner-rundschau-demo"
             className="text-(--color-link) hover:text-(--color-link-hover) transition-colors"
             target="_blank"
             rel="noopener noreferrer"
